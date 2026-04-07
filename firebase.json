@@ -3,13 +3,17 @@
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   },
+  "storage": {
+    "rules": "storage.rules"
+  },
   "hosting": {
     "public": ".",
     "ignore": [
       "firebase.json",
       ".firebaserc",
       "firestore.rules",
-      "firestore.indexes.json"
+      "firestore.indexes.json",
+      "storage.rules"
     ]
   }
 }

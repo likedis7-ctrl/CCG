@@ -1,0 +1,32 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isCNSA() {
+      return request.auth != null && request.auth.token.email.matches('.*@cnsa\\.hs\\.kr');
+    }
+
+    function isTeacher() {
+      return request.auth != null && request.auth.token.email in [
+        'kim@cnsa.hs.kr', 'lee@cnsa.hs.kr', 'park@cnsa.hs.kr',
+        'choi@cnsa.hs.kr', 'jung@cnsa.hs.kr', 'han@cnsa.hs.kr', 'oh@cnsa.hs.kr'
+      ];
+    }
+
+    function isAdmin() {
+      return request.auth != null && request.auth.token.email == 'likedis7@cnsa.hs.kr';
+    }
+
+    // 동아리 PDF 보고서 업로드 (교사/관리자만)
+    match /clubPDFs/{clubId}/{fileName} {
+      allow read: if isCNSA();
+      allow write: if isTeacher() || isAdmin();
+    }
+
+    // 아티클 이미지 (CNSA 계정이면 업로드 가능)
+    match /articleImages/{fileName} {
+      allow read: if isCNSA();
+      allow write: if isCNSA() && request.resource.size < 10 * 1024 * 1024; // 10MB 제한
+    }
+  }
+}

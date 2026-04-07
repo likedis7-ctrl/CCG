@@ -3,10 +3,11 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>진로진학부 | CNSA Career & College Guidance</title>
+<title>진로진학부 | CNSA Career &amp; College Guidance</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏫</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@400;600&display=swap" rel="stylesheet" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
@@ -19,6 +20,9 @@
 }
 html, body { height: 100%; }
 body { font-family: var(--font-body); background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* ── Top bar ── */
+.top-bar { background: #071832; padding: 6px 1.5rem; text-align: center; font-size: 11px; color: rgba(255,255,255,0.5); letter-spacing: 2px; }
 
 /* ── 로딩 ── */
 #loading-overlay { position: fixed; inset: 0; background: var(--navy); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; transition: opacity 0.4s; }
@@ -41,10 +45,10 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--text);
 /* ── NAV ── */
 nav { background: var(--navy); position: sticky; top: 0; z-index: 100; border-bottom: 2px solid var(--accent); }
 .nav-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 0 1.5rem; flex-wrap: wrap; }
-.logo { display: flex; align-items: center; gap: 10px; padding: 0.8rem 0; cursor: pointer; }
+.logo { display: flex; align-items: center; gap: 10px; padding: 0.7rem 0; cursor: pointer; }
 .logo-badge { width: 36px; height: 36px; background: var(--accent); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; color: var(--navy); font-family: var(--font-heading); flex-shrink: 0; }
-.logo-text { color: white; font-size: 14px; font-weight: 500; line-height: 1.3; }
-.logo-sub { color: var(--accent); font-size: 11px; font-weight: 300; }
+.logo-text { color: white; font-size: 14px; font-weight: 500; line-height: 1.2; }
+.logo-sub { color: var(--accent); font-size: 10px; font-weight: 300; letter-spacing: 0.5px; }
 .nav-right { display: flex; align-items: center; gap: 15px; }
 .nav-menu { display: flex; align-items: center; flex-wrap: nowrap; }
 .nav-item { color: rgba(255,255,255,0.8); padding: 1.2rem 0.8rem; font-size: 13px; cursor: pointer; position: relative; transition: color 0.2s; white-space: nowrap; user-select: none; }
@@ -68,13 +72,15 @@ main { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem 3rem; }
 .section-sub { font-size: 13px; color: var(--text-muted); }
 
 /* ── 소개 ── */
-.intro-banner { background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%); border-radius: 12px; padding: 2.5rem 2rem; margin-bottom: 2rem; color: white; position: relative; overflow: hidden; }
-.intro-banner::before { content: 'VERITAS'; position: absolute; right: -10px; top: 50%; transform: translateY(-50%); font-family: var(--font-heading); font-size: 80px; font-weight: 700; color: rgba(255,255,255,0.05); letter-spacing: 4px; pointer-events: none; }
-.intro-banner h2 { font-family: var(--font-heading); font-size: 20px; font-weight: 600; color: var(--accent); margin-bottom: 0.5rem; }
-.intro-banner p { font-size: 14px; opacity: 0.85; line-height: 1.8; }
+.intro-banner { background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%); border-radius: 16px; padding: 3rem 2.5rem; margin-bottom: 2rem; color: white; position: relative; overflow: hidden; box-shadow: 0 8px 32px rgba(11,36,71,0.25); }
+.intro-banner::before { content: 'CNSA'; position: absolute; right: -15px; top: 50%; transform: translateY(-50%); font-family: var(--font-heading); font-size: 110px; font-weight: 700; color: rgba(255,255,255,0.04); letter-spacing: 6px; pointer-events: none; }
+.intro-banner::after { content: ''; position: absolute; left: 0; bottom: 0; width: 100%; height: 3px; background: linear-gradient(90deg, var(--accent), transparent); }
+.intro-banner-label { font-size: 11px; font-weight: 500; letter-spacing: 3px; color: var(--accent); text-transform: uppercase; margin-bottom: 0.75rem; }
+.intro-banner h2 { font-family: var(--font-heading); font-size: 22px; font-weight: 600; color: white; margin-bottom: 0.75rem; }
+.intro-banner p { font-size: 14px; opacity: 0.8; line-height: 1.9; max-width: 580px; }
 .teacher-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 1rem; }
 .teacher-card { background: var(--white); border: 0.5px solid var(--border); border-radius: 12px; padding: 1.25rem; transition: transform 0.2s, box-shadow 0.2s; }
-.teacher-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+.teacher-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(11,36,71,0.1); }
 .teacher-avatar { width: 48px; height: 48px; border-radius: 50%; background: var(--navy); display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 500; color: var(--accent); margin-bottom: 0.75rem; font-family: var(--font-heading); }
 .teacher-name { font-size: 15px; font-weight: 500; margin-bottom: 4px; }
 .teacher-role { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
@@ -89,7 +95,9 @@ main { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem 3rem; }
 .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
 .cal-title { font-size: 16px; font-weight: 500; color: var(--navy); }
 .cal-nav { display: flex; gap: 4px; }
-.cal-btn { width: 28px; height: 28px; background: none; border: 0.5px solid var(--border); border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; color: var(--text); }
+.cal-btn { width: 28px; height: 28px; background: none; border: 0.5px solid var(--border); border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; color: var(--text); transition: all 0.15s; }
+.cal-btn:hover:not(:disabled) { background: var(--bg); }
+.cal-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
 .cal-dow { text-align: center; font-size: 11px; color: var(--text-muted); padding: 4px 0; font-weight: 500; }
 .cal-dow:first-child { color: #c0392b; }
@@ -104,6 +112,7 @@ main { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem 3rem; }
 .slot-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--blue); margin-top: 2px; }
 .cal-day.selected .slot-dot { background: var(--accent); }
 .teacher-badge { font-size: 9px; background: rgba(76,175,80,0.1); color: #2E7D32; border: 1px solid rgba(76,175,80,0.3); padding: 1px 3px; border-radius: 3px; margin-top: 1px; width: 92%; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; text-align: center; }
+.teacher-badge.my-open { background: rgba(76,175,80,0.15); color: #1B5E20; border-color: #4CAF50; font-weight: 500; }
 .legend { display: flex; gap: 1rem; margin-top: 0.75rem; font-size: 11px; color: var(--text-muted); align-items: center; flex-wrap: wrap; }
 .legend-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--blue); flex-shrink: 0; }
 .legend-open { width: 8px; height: 8px; border-radius: 2px; background: rgba(76,175,80,0.2); border: 1px solid #4CAF50; flex-shrink: 0; }
@@ -172,13 +181,13 @@ main { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem 3rem; }
 /* ── 동아리 ── */
 .club-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
 .club-card { background: var(--white); border: 0.5px solid var(--border); border-radius: 12px; padding: 1.25rem; cursor: pointer; transition: all 0.2s; }
-.club-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.08); border-color: var(--navy); }
+.club-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(11,36,71,0.1); border-color: var(--navy); }
 .club-name { font-size: 15px; font-weight: 500; color: var(--navy); margin-bottom: 6px; font-family: var(--font-heading); }
 .club-meta { font-size: 12px; color: var(--text-muted); line-height: 1.8; }
 .club-activity { font-size: 12px; color: var(--text-muted); margin-top: 8px; padding-top: 8px; border-top: 0.5px solid var(--border); line-height: 1.6; }
 .club-board { display: none; }
 .club-board.active { display: block; }
-.club-board-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; }
+.club-board-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
 .back-btn { padding: 0.4rem 0.75rem; border: 0.5px solid var(--border); border-radius: 6px; font-size: 12px; cursor: pointer; background: var(--white); color: var(--text); font-family: var(--font-body); transition: background 0.15s; }
 .back-btn:hover { background: var(--bg); }
 .post-list { display: flex; flex-direction: column; gap: 0.75rem; }
@@ -212,7 +221,7 @@ main { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem 3rem; }
 .modal h3 { font-family: var(--font-heading); font-size: 18px; margin-bottom: 0.75rem; color: var(--navy); }
 .modal p { font-size: 13px; color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.8; }
 .modal-ok { padding: 0.6rem 2rem; background: var(--navy); color: white; border: none; border-radius: 8px; font-size: 14px; font-family: var(--font-body); cursor: pointer; }
-#toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--navy); color: white; padding: 0.75rem 1.5rem; border-radius: 8px; font-size: 13px; z-index: 3000; transition: transform 0.3s; white-space: nowrap; }
+#toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--navy); color: white; padding: 0.75rem 1.5rem; border-radius: 8px; font-size: 13px; z-index: 5000; transition: transform 0.3s; white-space: nowrap; }
 #toast.show { transform: translateX(-50%) translateY(0); }
 
 /* ── 푸터 ── */
@@ -228,6 +237,74 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
 .footer-updated { font-size: 11px; color: rgba(255,255,255,0.4); }
 .footer-bottom { max-width: 1100px; margin: 1.25rem auto 0; padding-top: 1rem; border-top: 0.5px solid rgba(255,255,255,0.1); font-size: 11px; color: rgba(255,255,255,0.3); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; }
 
+/* ── 동아리 신규 스타일 ── */
+.article-preview-section { margin-bottom: 2rem; }
+.article-preview-heading { font-family: var(--font-heading); font-size: 20px; color: var(--navy); margin-bottom: 1rem; }
+.article-preview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.article-preview-card { background: var(--white); border-radius: 12px; border: 0.5px solid var(--border); overflow: hidden; cursor: pointer; transition: all 0.2s; }
+.article-preview-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+.article-preview-thumb { width: 100%; height: 160px; object-fit: cover; display: block; }
+.article-preview-thumb-placeholder { width: 100%; height: 160px; background: linear-gradient(135deg, var(--navy), var(--navy-mid)); display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); font-size: 32px; }
+.article-preview-body { padding: 1rem; }
+.article-preview-club { font-size: 11px; color: var(--accent); font-weight: 700; margin-bottom: 4px; }
+.article-preview-title { font-size: 15px; font-weight: 500; margin-bottom: 6px; color: var(--navy); }
+.article-preview-text { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+
+.submit-badges { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 8px; }
+.submit-badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; }
+.submit-badge.done { background: #E8F5E9; color: #1B5E20; }
+.submit-badge.pending { background: #FFEBEE; color: #B71C1C; }
+
+.club-board-title { font-family: var(--font-heading); font-size: 28px; font-weight: 700; color: var(--navy); }
+.upload-panel { background: linear-gradient(135deg, var(--navy), var(--navy-mid)); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+.upload-panel-title { color: var(--accent); font-size: 14px; font-weight: 500; margin-bottom: 1rem; }
+.upload-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn-upload-action { padding: 0.5rem 1rem; border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; background: rgba(255,255,255,0.1); color: white; font-size: 13px; font-family: var(--font-body); cursor: pointer; transition: all 0.15s; }
+.btn-upload-action:hover { background: rgba(255,255,255,0.2); }
+
+.pdf-report-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem; }
+.pdf-report-card { background: var(--white); border: 0.5px solid var(--border); border-radius: 12px; padding: 1.25rem; text-align: center; transition: all 0.15s; }
+.pdf-report-card.submitted { border-color: #4CAF50; }
+.pdf-report-label { font-size: 13px; font-weight: 500; color: var(--navy); margin-bottom: 8px; }
+.pdf-report-status { font-size: 20px; margin-bottom: 8px; }
+.btn-view-pdf { padding: 0.4rem 0.8rem; background: var(--navy); color: white; border: none; border-radius: 6px; font-size: 12px; cursor: pointer; font-family: var(--font-body); }
+
+.article-item { background: var(--white); border: 0.5px solid var(--border); border-radius: 10px; padding: 1.25rem; margin-bottom: 0.75rem; cursor: pointer; transition: all 0.15s; }
+.article-item:hover { border-color: var(--navy); }
+.article-item-title { font-size: 15px; font-weight: 500; color: var(--navy); margin-bottom: 6px; }
+.article-item-meta { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
+.article-item-preview { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+
+/* ── 풀스크린 모달 ── */
+.full-modal { position: fixed; inset: 0; background: var(--white); z-index: 3000; display: none; flex-direction: column; }
+.full-modal.open { display: flex; }
+.full-modal-header { background: var(--navy); padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+.full-modal-title { color: white; font-size: 16px; font-weight: 500; }
+.full-modal-close { background: none; border: 1px solid rgba(255,255,255,0.3); color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-family: var(--font-body); font-size: 14px; }
+.full-modal-body { flex: 1; overflow-y: auto; padding: 2rem; max-width: 900px; margin: 0 auto; width: 100%; }
+.full-modal-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--border); display: flex; gap: 0.75rem; justify-content: flex-end; flex-shrink: 0; }
+
+.article-meta { font-size: 13px; color: var(--text-muted); margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+
+/* ── CKEditor 렌더링 ── */
+.ck-content h2 { font-size: 22px; font-weight: 600; margin: 1.5rem 0 0.75rem; }
+.ck-content h3 { font-size: 18px; font-weight: 600; margin: 1.25rem 0 0.5rem; }
+.ck-content p { margin: 0.75rem 0; line-height: 1.8; }
+.ck-content ul, .ck-content ol { margin: 0.75rem 0 0.75rem 1.5rem; }
+.ck-content li { margin: 0.25rem 0; line-height: 1.7; }
+.ck-content img { max-width: 100%; border-radius: 8px; margin: 0.5rem 0; }
+.ck-content table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+.ck-content table td, .ck-content table th { border: 1px solid var(--border); padding: 8px 12px; }
+.ck-content table th { background: var(--navy); color: white; }
+
+/* ── 에디터 모달 ── */
+.editor-title-input { width: 100%; padding: 0.75rem 1rem; border: 0.5px solid var(--border); border-radius: 8px; font-size: 18px; font-family: var(--font-heading); outline: none; margin-bottom: 1rem; color: var(--navy); }
+.editor-title-input:focus { border-color: var(--navy); }
+#ck-editor-wrap .ck-editor__editable { min-height: 400px; }
+
+/* ── PDF iframe ── */
+.pdf-iframe-wrap { width: 100%; height: 70vh; border: none; border-radius: 8px; }
+
 /* ── 반응형 ── */
 @media (max-width: 768px) {
   .booking-layout, .teacher-schedule-grid, .admin-grid { grid-template-columns: 1fr; }
@@ -238,10 +315,15 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
   .user-info { padding-left: 0; border-left: none; width: 100%; justify-content: flex-end; }
   .teacher-grid { grid-template-columns: 1fr 1fr; }
   .club-grid { grid-template-columns: 1fr; }
+  .article-preview-grid { grid-template-columns: 1fr; }
+  .pdf-report-cards { grid-template-columns: 1fr; }
 }
 </style>
 </head>
 <body>
+
+<!-- Top bar -->
+<div class="top-bar">충남삼성고등학교 진로진학부 &nbsp;|&nbsp; CNSA Career &amp; College Guidance</div>
 
 <!-- 로딩 -->
 <div id="loading-overlay">
@@ -297,6 +379,7 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
   <!-- 1. 소개 -->
   <div class="section active" id="sec-intro">
     <div class="intro-banner">
+      <div class="intro-banner-label">충남삼성고등학교</div>
       <h2>진로진학부에 오신 것을 환영합니다</h2>
       <p>학생 여러분의 진로 탐색과 대입 준비를 함께하는 진로진학부입니다.<br>상담, 진로체험, 동아리 활동 등 다양한 프로그램을 통해 여러분의 미래를 응원합니다.</p>
     </div>
@@ -328,10 +411,7 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
         <div class="calendar-wrap">
           <div class="cal-header">
             <div class="cal-title" id="cal-title"></div>
-            <div class="cal-nav">
-              <button class="cal-btn" onclick="changeMonth(-1)">&#8249;</button>
-              <button class="cal-btn" onclick="changeMonth(1)">&#8250;</button>
-            </div>
+            <!-- 학생은 현재 달만 보임 (내비 없음) -->
           </div>
           <div class="cal-grid" id="cal-grid"></div>
           <div class="legend">
@@ -365,13 +445,13 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
             <div class="cal-header">
               <div class="cal-title" id="t-cal-title"></div>
               <div class="cal-nav">
-                <button class="cal-btn" onclick="changeTeacherMonth(-1)">&#8249;</button>
-                <button class="cal-btn" onclick="changeTeacherMonth(1)">&#8250;</button>
+                <button class="cal-btn" id="t-cal-prev" onclick="changeTeacherMonth(-1)">&#8249;</button>
+                <button class="cal-btn" id="t-cal-next" onclick="changeTeacherMonth(1)">&#8250;</button>
               </div>
             </div>
             <div class="cal-grid" id="t-cal-grid"></div>
             <div class="legend">
-              <div class="legend-open"></div><span>내가 연 날</span>
+              <div class="legend-open"></div><span>내 상담 열림</span>
             </div>
           </div>
           <div class="slot-setting-panel">
@@ -416,19 +496,38 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
 
   <!-- 4. 동아리 -->
   <div class="section" id="sec-club">
-    <div class="section-header">
-      <div class="section-title">동아리활동</div>
-      <div class="section-sub">동아리 카드를 클릭하면 활동 게시판을 볼 수 있어요</div>
-    </div>
     <div id="club-list-area">
+      <div class="section-header">
+        <div class="section-title">동아리활동</div>
+        <div class="section-sub">동아리 카드를 클릭하면 활동 게시판을 볼 수 있어요</div>
+      </div>
+      <!-- 최근 활동 자랑 2개 -->
+      <div class="article-preview-section" id="article-preview-section" style="display:none;">
+        <div class="article-preview-heading">우리 동아리 활동 자랑</div>
+        <div class="article-preview-grid" id="article-preview-grid"></div>
+      </div>
       <div class="club-grid" id="club-grid"></div>
     </div>
     <div id="club-board-area" class="club-board">
       <div class="club-board-header">
-        <button class="back-btn" onclick="closeClubBoard()">← 목록으로</button>
-        <div class="section-title" id="board-club-name"></div>
+        <button class="back-btn" onclick="closeClubBoard()">← 동아리 목록</button>
+        <div class="club-board-title" id="board-club-name"></div>
       </div>
-      <div class="post-list" id="post-list"></div>
+      <!-- 업로드 패널 (권한자만) -->
+      <div class="upload-panel" id="club-upload-panel" style="display:none;">
+        <div class="upload-panel-title">관리 메뉴</div>
+        <div class="upload-actions">
+          <button class="btn-upload-action" onclick="uploadClubPdf('annual')">📄 연간 활동계획서 업로드</button>
+          <button class="btn-upload-action" onclick="uploadClubPdf('mid')">📄 중간 활동보고서 업로드</button>
+          <button class="btn-upload-action" onclick="uploadClubPdf('final')">📄 최종 활동보고서 업로드</button>
+          <button class="btn-upload-action" onclick="openArticleEditor()">✏️ 활동 자랑 작성</button>
+        </div>
+        <input type="file" id="pdf-file-input" class="file-input" accept=".pdf" onchange="handlePdfUpload(this)" />
+      </div>
+      <!-- PDF 보고서 카드 -->
+      <div class="pdf-report-cards" id="pdf-report-cards"></div>
+      <!-- 활동 게시글 목록 -->
+      <div id="club-articles-list"></div>
     </div>
   </div>
 
@@ -452,7 +551,7 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
       </div>
       <div class="admin-section">
         <div class="admin-section-title">동아리 목록 관리</div>
-        <div class="admin-desc">동아리 카드 목록을 갱신합니다.<br><strong>필수 컬럼:</strong> 동아리명, 기장 이름, 주요활동, 교실, 지도교사, 비고</div>
+        <div class="admin-desc">동아리 카드 목록을 갱신합니다.<br><strong>필수 컬럼:</strong> 동아리명, 기장 이름, 기장 이메일, 주요활동, 교실, 지도교사, 비고</div>
         <div class="admin-actions">
           <button class="btn-download" onclick="downloadClubTemplate()">⬇ 양식 다운로드</button>
           <button class="btn-upload"   onclick="document.getElementById('club-file-input').click()">⬆ 엑셀 업로드</button>
@@ -480,8 +579,8 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
       </div>
     </div>
     <div class="footer-right">
-      <div class="footer-version">v1.4</div>
-      <div class="footer-updated">2026.04 업데이트 · 4번째 버전</div>
+      <div class="footer-version">v2.0</div>
+      <div class="footer-updated">2026.04 업데이트 · 5번째 버전</div>
     </div>
   </div>
   <div class="footer-bottom">
@@ -490,7 +589,7 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
   </div>
 </footer>
 
-<!-- 모달 -->
+<!-- 일반 모달 -->
 <div class="modal-bg" id="modal-bg">
   <div class="modal">
     <div class="modal-icon">✅</div>
@@ -501,13 +600,59 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
 </div>
 <div id="toast"></div>
 
+<!-- 글쓰기 풀스크린 모달 -->
+<div class="full-modal" id="editor-modal">
+  <div class="full-modal-header">
+    <span class="full-modal-title">활동 자랑 작성</span>
+    <button class="full-modal-close" onclick="closeArticleEditor()">✕ 닫기</button>
+  </div>
+  <div class="full-modal-body">
+    <input type="text" class="editor-title-input" id="article-title-input" placeholder="제목을 입력하세요" />
+    <div id="ck-editor-wrap"></div>
+  </div>
+  <div class="full-modal-footer">
+    <button class="btn-slot-del" style="width:auto;padding:0.6rem 1.5rem;" onclick="closeArticleEditor()">취소</button>
+    <button class="btn-slot-save" style="width:auto;padding:0.6rem 1.5rem;" onclick="submitArticle()">게시하기</button>
+  </div>
+</div>
+
+<!-- 글 보기 풀스크린 모달 -->
+<div class="full-modal" id="article-view-modal">
+  <div class="full-modal-header">
+    <span class="full-modal-title" id="article-view-club-name"></span>
+    <button class="full-modal-close" onclick="closeArticleView()">✕ 닫기</button>
+  </div>
+  <div class="full-modal-body">
+    <h1 id="article-view-title" style="font-family:var(--font-heading);font-size:26px;color:var(--navy);margin-bottom:1rem;"></h1>
+    <div class="article-meta" id="article-view-meta"></div>
+    <div class="ck-content" id="article-view-content"></div>
+  </div>
+</div>
+
+<!-- PDF 뷰어 풀스크린 모달 -->
+<div class="full-modal" id="pdf-view-modal">
+  <div class="full-modal-header">
+    <span class="full-modal-title" id="pdf-view-title">보고서 보기</span>
+    <button class="full-modal-close" onclick="closePdfView()">✕ 닫기</button>
+  </div>
+  <div class="full-modal-body" style="padding:1rem;">
+    <iframe id="pdf-iframe" class="pdf-iframe-wrap" src=""></iframe>
+  </div>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, setDoc, doc, getDoc, query, where, getDocs, orderBy, updateDoc, deleteDoc, Timestamp }
+import { getFirestore, collection, addDoc, setDoc, doc, getDoc, query, where,
+         getDocs, orderBy, updateDoc, deleteDoc, Timestamp, onSnapshot, limit }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
+/* ══════════════════════════════════════
+   설정
+══════════════════════════════════════ */
 const firebaseConfig = {
   apiKey: "AIzaSyCULF2nwVz80uhaIJv417Sknxm7WM93Rfc",
   authDomain: "jiroccg-6d981.firebaseapp.com",
@@ -516,10 +661,6 @@ const firebaseConfig = {
   messagingSenderId: "530711921579",
   appId: "1:530711921579:web:e26164f7e8c21e69ea08ee"
 };
-const app  = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db   = getFirestore(app);
-
 const ADMIN_EMAIL = 'likedis7@cnsa.hs.kr';
 const TEACHERS = {
   'kim@cnsa.hs.kr':  '김진아 선생님',
@@ -531,8 +672,32 @@ const TEACHERS = {
   'oh@cnsa.hs.kr':   '오수빈 선생님',
 };
 
+const app     = initializeApp(firebaseConfig);
+const auth    = getAuth(app);
+const db      = getFirestore(app);
+const storage = getStorage(app);
+
+/* CKEditor 이미지 업로드 어댑터 */
+function createUploadAdapter(loader) {
+  return {
+    upload: () => loader.file.then(async file => {
+      const storageRef = ref(storage, `articleImages/${Date.now()}_${file.name}`);
+      const snap = await uploadBytes(storageRef, file);
+      const url  = await getDownloadURL(snap.ref);
+      return { default: url };
+    })
+  };
+}
+function UploadAdapterPlugin(editor) {
+  editor.plugins.get('FileRepository').createUploadAdapter = (loader) => createUploadAdapter(loader);
+}
+
 let currentUser = null;
 let currentRole = 'student'; // student | teacher | admin
+
+/* 실시간 구독 핸들 */
+let slotsUnsubscribe    = null;
+let approvalsUnsubscribe = null;
 
 /* ══════════════════════════════════════
    인증
@@ -553,9 +718,9 @@ onAuthStateChanged(auth, async (user) => {
 
   if (user && user.email.endsWith('@cnsa.hs.kr')) {
     currentUser = user;
-    if      (user.email === ADMIN_EMAIL)                       currentRole = 'admin';
-    else if (Object.keys(TEACHERS).includes(user.email))       currentRole = 'teacher';
-    else                                                        currentRole = 'student';
+    if      (user.email === ADMIN_EMAIL)                  currentRole = 'admin';
+    else if (Object.keys(TEACHERS).includes(user.email))  currentRole = 'teacher';
+    else                                                   currentRole = 'student';
 
     // 아바타
     const wrap = document.getElementById('user-avatar-wrap');
@@ -576,6 +741,9 @@ onAuthStateChanged(auth, async (user) => {
     loadClubs();
   } else {
     currentUser = null;
+    // 구독 해제
+    if (slotsUnsubscribe)    { slotsUnsubscribe();    slotsUnsubscribe    = null; }
+    if (approvalsUnsubscribe){ approvalsUnsubscribe(); approvalsUnsubscribe = null; }
     overlay.classList.add('hide');
     loginScr.classList.add('show');
     mainNav.style.display  = 'none';
@@ -596,119 +764,150 @@ window.showSection = function(key) {
   document.getElementById('nav-'+key)?.classList.add('active');
 
   if (key === 'booking') {
+    // 구독 해제 후 재설정
+    if (slotsUnsubscribe)    { slotsUnsubscribe();    slotsUnsubscribe    = null; }
+    if (approvalsUnsubscribe){ approvalsUnsubscribe(); approvalsUnsubscribe = null; }
+
     document.getElementById('booking-student-view').classList.remove('active');
     document.getElementById('booking-teacher-view').classList.remove('active');
     if (currentRole === 'teacher' || currentRole === 'admin') {
       document.getElementById('booking-teacher-view').classList.add('active');
       document.getElementById('teacher-greeting-sub').textContent =
         (TEACHERS[currentUser?.email] || currentUser?.displayName || '선생님') + ' 환영합니다.';
-      renderTeacherCal();
-      loadTeacherApprovals();
+      subscribeTeacherCal();
+      subscribeTeacherApprovals();
     } else {
       document.getElementById('booking-student-view').classList.add('active');
-      renderCal();
+      subscribeStudentCal();
       loadMyBookings();
     }
   }
   if (key === 'career') loadCareerData();
-  if (key === 'club')   { document.getElementById('club-list-area').style.display='block'; document.getElementById('club-board-area').classList.remove('active'); }
+  if (key === 'club') {
+    document.getElementById('club-list-area').style.display = 'block';
+    document.getElementById('club-board-area').classList.remove('active');
+  }
 };
 
 /* ══════════════════════════════════════
-   학생 달력 & 상담 예약
+   학생 달력 & 상담 예약 (실시간)
 ══════════════════════════════════════ */
-const today = new Date();
-let curYear = today.getFullYear(), curMonth = today.getMonth();
-let selectedDate = null, selectedTeacher = null;
-let openedSlots = {}; // { 'YYYY-MM-DD': [{teacherEmail, teacherName, categories:[]}] }
+const today   = new Date();
+const curYear  = today.getFullYear();
+const curMonth = today.getMonth(); // 학생은 항상 현재 달
 
-async function fetchOpenedSlots() {
-  const snap = await getDocs(collection(db, 'teacherSlots'));
-  openedSlots = {};
-  snap.forEach(d => { openedSlots[d.id] = d.data().slots || []; });
-}
+let selectedDate    = null;
+let selectedTeacher = null;
+let openedSlots     = {}; // { 'YYYY-MM-DD': [{teacherEmail, teacherName, categories}] }
 
 const monthNames = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
 
-window.renderCal = async function() {
-  await fetchOpenedSlots();
+function subscribeStudentCal() {
+  const grid = document.getElementById('cal-grid');
   document.getElementById('cal-title').textContent = `${curYear}년 ${monthNames[curMonth]}`;
-  const grid = document.getElementById('cal-grid'); grid.innerHTML = '';
+
+  if (slotsUnsubscribe) { slotsUnsubscribe(); slotsUnsubscribe = null; }
+
+  slotsUnsubscribe = onSnapshot(collection(db, 'teacherSlots'), (snap) => {
+    openedSlots = {};
+    snap.forEach(d => { openedSlots[d.id] = d.data().slots || []; });
+    renderStudentCal();
+  });
+}
+
+function renderStudentCal() {
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML = '';
   ['일','월','화','수','목','금','토'].forEach(d => {
-    const el = document.createElement('div'); el.className='cal-dow'; el.textContent=d; grid.appendChild(el);
+    const el = document.createElement('div'); el.className = 'cal-dow'; el.textContent = d; grid.appendChild(el);
   });
   const firstDow = new Date(curYear, curMonth, 1).getDay();
   const dim      = new Date(curYear, curMonth+1, 0).getDate();
   const prevDim  = new Date(curYear, curMonth, 0).getDate();
-  const isNow    = today.getMonth()===curMonth && today.getFullYear()===curYear;
 
-  for (let i=0; i<firstDow; i++) {
-    const el=document.createElement('div'); el.className='cal-day other-month';
-    el.textContent=prevDim-firstDow+1+i; grid.appendChild(el);
+  for (let i = 0; i < firstDow; i++) {
+    const el = document.createElement('div'); el.className = 'cal-day other-month';
+    el.textContent = prevDim - firstDow + 1 + i; grid.appendChild(el);
   }
-  for (let d=1; d<=dim; d++) {
-    const el=document.createElement('div'); el.className='cal-day'; el.textContent=d;
-    if (isNow && d===today.getDate()) el.classList.add('today');
-    const key=`${curYear}-${String(curMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    if (openedSlots[key] && openedSlots[key].length>0) {
+  for (let d = 1; d <= dim; d++) {
+    const el  = document.createElement('div'); el.className = 'cal-day'; el.textContent = d;
+    const key = `${curYear}-${String(curMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    if (today.getMonth() === curMonth && today.getFullYear() === curYear && d === today.getDate())
+      el.classList.add('today');
+    const slotList = openedSlots[key] || [];
+    if (slotList.length > 0) {
       el.classList.add('has-slot');
-      const dot=document.createElement('div'); dot.className='slot-dot'; el.appendChild(dot);
+      // 선생님 이름 배지
+      const names = slotList.map(s => s.teacherName.replace(' 선생님','').replace('님','')).join(', ');
+      const badge = document.createElement('div'); badge.className = 'teacher-badge';
+      badge.textContent = names; el.appendChild(badge);
       el.onclick = () => selectDate(d, key);
     }
-    if (selectedDate===d) el.classList.add('selected');
+    if (selectedDate === d) el.classList.add('selected');
     grid.appendChild(el);
   }
-};
-
-window.changeMonth = function(dir) {
-  curMonth += dir;
-  if (curMonth<0){curMonth=11;curYear--;} if(curMonth>11){curMonth=0;curYear++;}
-  selectedDate=null; selectedTeacher=null; renderCal(); updatePanel();
-};
+}
 
 function selectDate(d, key) {
-  selectedDate=d; selectedTeacher=null;
-  document.querySelectorAll('#cal-grid .cal-day').forEach(el=>el.classList.remove('selected'));
-  renderCal(); updatePanel(key);
+  selectedDate    = d;
+  selectedTeacher = null;
+  renderStudentCal();
+  updatePanel(key);
 }
 
 function updatePanel(key) {
-  const pc=document.getElementById('panel-content');
-  if (!selectedDate) { pc.innerHTML='<div class="no-date-msg">달력에서 날짜를 먼저 선택하세요</div>'; return; }
+  const pc = document.getElementById('panel-content');
+  if (!selectedDate) { pc.innerHTML = '<div class="no-date-msg">달력에서 날짜를 먼저 선택하세요</div>'; return; }
   const slots = openedSlots[key] || [];
-  let html=`<div class="field"><label>선택한 날짜</label><input type="text" readonly value="${curYear}년 ${curMonth+1}월 ${selectedDate}일"></div>
-  <div class="field"><label>상담 선생님 선택</label>`;
-  slots.forEach((s,i) => {
+  let html = `<div class="field"><label>선택한 날짜</label>
+    <input type="text" readonly value="${curYear}년 ${curMonth+1}월 ${selectedDate}일"></div>
+    <div class="field"><label>상담 선생님 선택</label>`;
+  slots.forEach((s, i) => {
     const cats = (s.categories||[]).join(', ') || '일반 상담';
-    html+=`<div class="t-option" id="topt-${i}" onclick="selectTeacher(${i},'${key}')">
+    html += `<div class="t-option" id="topt-${i}" onclick="selectTeacher(${i},'${key}')">
       <span>${s.teacherName}</span>
       <span class="t-field-badge">${cats}</span>
     </div>`;
   });
-  html+=`</div><div class="field"><label>상담 희망 내용</label>
-  <textarea id="consult-memo" placeholder="상담받고 싶은 내용을 간략히 적어주세요"></textarea></div>
-  <button class="btn-submit" onclick="submitBooking('${key}')">예약 신청하기</button>`;
-  pc.innerHTML=html;
+  html += `</div><div class="field"><label>상담 희망 내용</label>
+    <textarea id="consult-memo" placeholder="상담받고 싶은 내용을 간략히 적어주세요"></textarea></div>
+    <button class="btn-submit" onclick="submitBooking('${key}')">예약 신청하기</button>`;
+  pc.innerHTML = html;
 }
 
 window.selectTeacher = function(i, key) {
-  selectedTeacher=i;
-  document.querySelectorAll('.t-option').forEach(el=>el.classList.remove('chosen'));
+  selectedTeacher = i;
+  document.querySelectorAll('.t-option').forEach(el => el.classList.remove('chosen'));
   document.getElementById(`topt-${i}`)?.classList.add('chosen');
 };
 
 window.submitBooking = async function(key) {
   if (!currentUser) { showToast('로그인이 필요합니다.'); return; }
-  if (selectedTeacher===null) { showToast('선생님을 선택해주세요.'); return; }
-  const memo=(document.getElementById('consult-memo')?.value||'').trim();
+  if (selectedTeacher === null) { showToast('선생님을 선택해주세요.'); return; }
+  const memo = (document.getElementById('consult-memo')?.value || '').trim();
   if (!memo) { showToast('상담 내용을 입력해주세요.'); return; }
-  const slot=(openedSlots[key]||[])[selectedTeacher];
+  const slot = (openedSlots[key]||[])[selectedTeacher];
   if (!slot) { showToast('선생님 정보를 찾을 수 없습니다.'); return; }
+
+  // 중복 예약 체크
   try {
-    await addDoc(collection(db,'bookings'), {
+    const dupQ = query(collection(db, 'bookings'),
+      where('uid',           '==', currentUser.uid),
+      where('dateKey',       '==', key),
+      where('teacherEmail',  '==', slot.teacherEmail));
+    const dupSnap = await getDocs(dupQ);
+    const hasDup = !dupSnap.empty && dupSnap.docs.some(d => {
+      const s = d.data().status;
+      return s === '예약 대기' || s === '예약 확정';
+    });
+    if (hasDup) { showToast('이미 해당 날짜에 같은 선생님께 예약하셨습니다.'); return; }
+  } catch(e) { /* 체크 실패해도 진행 */ }
+
+  try {
+    await addDoc(collection(db, 'bookings'), {
       uid:          currentUser.uid,
       email:        currentUser.email,
-      userName:     currentUser.displayName||currentUser.email,
+      userName:     currentUser.displayName || currentUser.email,
       teacherEmail: slot.teacherEmail,
       teacherName:  slot.teacherName,
       date:         `${curYear}년 ${curMonth+1}월 ${selectedDate}일`,
@@ -717,342 +916,618 @@ window.submitBooking = async function(key) {
       status:       '예약 대기',
       createdAt:    Timestamp.now(),
     });
-    document.getElementById('modal-title').textContent='예약이 신청되었습니다!';
-    document.getElementById('modal-msg').innerHTML=
+    document.getElementById('modal-title').textContent = '예약이 신청되었습니다!';
+    document.getElementById('modal-msg').innerHTML =
       `<b>${slot.teacherName}</b>에게 상담 예약이 신청되었습니다.<br>
-      <b>${curYear}년 ${curMonth+1}월 ${selectedDate}일</b><br>
-      선생님 승인 후 확정됩니다.`;
+       <b>${curYear}년 ${curMonth+1}월 ${selectedDate}일</b><br>
+       선생님 승인 후 확정됩니다.`;
     document.getElementById('modal-bg').classList.add('open');
-    selectedDate=null; selectedTeacher=null; renderCal();
-    document.getElementById('panel-content').innerHTML='<div class="no-date-msg">달력에서 날짜를 먼저 선택하세요</div>';
+    selectedDate = null; selectedTeacher = null;
+    renderStudentCal();
+    document.getElementById('panel-content').innerHTML = '<div class="no-date-msg">달력에서 날짜를 먼저 선택하세요</div>';
     loadMyBookings();
-  } catch(e) { showToast('예약 저장 중 오류: '+e.message); }
+  } catch(e) { showToast('예약 저장 중 오류: ' + e.message); }
 };
 
 async function loadMyBookings() {
   if (!currentUser) return;
-  const list=document.getElementById('my-booking-list');
-  list.innerHTML='<div class="no-date-msg" style="text-align:left;">불러오는 중...</div>';
+  const list = document.getElementById('my-booking-list');
+  list.innerHTML = '<div class="no-date-msg" style="text-align:left;">불러오는 중...</div>';
   try {
-    const q=query(collection(db,'bookings'),where('uid','==',currentUser.uid),orderBy('createdAt','desc'));
-    const snap=await getDocs(q);
-    if (snap.empty) { list.innerHTML='<div class="no-date-msg" style="text-align:left;">예약 내역이 없습니다.</div>'; return; }
-    list.innerHTML='';
+    const q    = query(collection(db,'bookings'), where('uid','==',currentUser.uid), orderBy('createdAt','desc'));
+    const snap = await getDocs(q);
+    if (snap.empty) { list.innerHTML = '<div class="no-date-msg" style="text-align:left;">예약 내역이 없습니다.</div>'; return; }
+    list.innerHTML = '';
     snap.forEach(d => {
-      const data=d.data();
-      const badgeClass = data.status==='예약 확정'?'status-confirmed':data.status==='반려'?'status-rejected':'status-pending';
-      const el=document.createElement('div'); el.className='booking-item';
-      el.innerHTML=`<div class="booking-item-info"><strong>${data.date}</strong> &nbsp;·&nbsp; ${data.teacherName}<br>
+      const data = d.data();
+      const badgeClass = data.status === '예약 확정' ? 'status-confirmed'
+                        : data.status === '반려'      ? 'status-rejected'
+                        : 'status-pending';
+      const el = document.createElement('div'); el.className = 'booking-item';
+      el.innerHTML = `<div class="booking-item-info"><strong>${data.date}</strong> &nbsp;·&nbsp; ${data.teacherName}<br>
         <span style="color:var(--text-muted);font-size:12px;">${data.memo}</span></div>
         <span class="status-badge ${badgeClass}">${data.status}</span>`;
       list.appendChild(el);
     });
-  } catch(e) { list.innerHTML='<div class="no-date-msg" style="text-align:left;">불러오기 실패.</div>'; }
+  } catch(e) { list.innerHTML = '<div class="no-date-msg" style="text-align:left;">불러오기 실패.</div>'; }
 }
 
 /* ══════════════════════════════════════
-   선생님 달력 & 일정 설정
+   선생님 달력 & 일정 설정 (실시간)
 ══════════════════════════════════════ */
-let tCurYear=today.getFullYear(), tCurMonth=today.getMonth(), tSelectedDate=null;
-let mySlotCache={};
+const T_MIN = { y: today.getFullYear(), m: today.getMonth() };
+const T_MAX = today.getMonth() === 11
+  ? { y: today.getFullYear()+1, m: 0 }
+  : { y: today.getFullYear(),   m: today.getMonth()+1 };
 
-async function fetchMySlots() {
-  if (!currentUser) return;
-  const snap=await getDocs(collection(db,'teacherSlots'));
-  mySlotCache={};
-  snap.forEach(d => {
-    const data=d.data();
-    const mine=(data.slots||[]).filter(s=>s.teacherEmail===currentUser.email);
-    if (mine.length>0) mySlotCache[d.id]=mine[0];
+let tCurYear    = today.getFullYear();
+let tCurMonth   = today.getMonth();
+let tSelectedDate = null;
+let allSlotsCache = {}; // for teacher cal
+
+function subscribeTeacherCal() {
+  if (slotsUnsubscribe) { slotsUnsubscribe(); slotsUnsubscribe = null; }
+
+  slotsUnsubscribe = onSnapshot(collection(db, 'teacherSlots'), (snap) => {
+    allSlotsCache = {};
+    snap.forEach(d => { allSlotsCache[d.id] = d.data().slots || []; });
+    renderTeacherCal();
   });
 }
 
-window.renderTeacherCal = async function() {
-  await fetchMySlots();
-  document.getElementById('t-cal-title').textContent=`${tCurYear}년 ${tCurMonth+1}월`;
-  const grid=document.getElementById('t-cal-grid'); grid.innerHTML='';
-  const dim=new Date(tCurYear,tCurMonth+1,0).getDate();
-  const firstDow=new Date(tCurYear,tCurMonth,1).getDay();
-  ['일','월','화','수','목','금','토'].forEach(d=>{
-    const el=document.createElement('div'); el.className='cal-dow'; el.textContent=d; grid.appendChild(el);
+window.renderTeacherCal = function() {
+  document.getElementById('t-cal-title').textContent = `${tCurYear}년 ${tCurMonth+1}월`;
+  const grid = document.getElementById('t-cal-grid'); grid.innerHTML = '';
+  const dim      = new Date(tCurYear, tCurMonth+1, 0).getDate();
+  const firstDow = new Date(tCurYear, tCurMonth, 1).getDay();
+
+  ['일','월','화','수','목','금','토'].forEach(d => {
+    const el = document.createElement('div'); el.className = 'cal-dow'; el.textContent = d; grid.appendChild(el);
   });
-  for(let i=0;i<firstDow;i++){
-    const el=document.createElement('div'); el.className='cal-day other-month'; grid.appendChild(el);
+  for (let i = 0; i < firstDow; i++) {
+    const el = document.createElement('div'); el.className = 'cal-day other-month'; grid.appendChild(el);
   }
-  for(let d=1;d<=dim;d++){
-    const el=document.createElement('div'); el.className='cal-day'; el.textContent=d;
-    const key=`${tCurYear}-${String(tCurMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    if(mySlotCache[key]){ el.classList.add('opened');
-      const badge=document.createElement('div'); badge.className='teacher-badge';
-      badge.textContent='상담 열림'; el.appendChild(badge);
+  for (let d = 1; d <= dim; d++) {
+    const el  = document.createElement('div'); el.className = 'cal-day'; el.textContent = d;
+    const key = `${tCurYear}-${String(tCurMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const daySlots = allSlotsCache[key] || [];
+    const mySlot   = daySlots.find(s => s.teacherEmail === currentUser?.email);
+    if (mySlot) {
+      el.classList.add('opened');
+      const badge = document.createElement('div'); badge.className = 'teacher-badge my-open';
+      badge.textContent = '내 상담 열림'; el.appendChild(badge);
     }
-    if(tSelectedDate===d) el.classList.add('selected');
-    el.onclick=()=>{ tSelectedDate=d; renderTeacherCal(); showSlotPanel(key); };
+    if (tSelectedDate === d) el.classList.add('selected');
+    el.onclick = () => { tSelectedDate = d; renderTeacherCal(); showSlotPanel(key); };
     grid.appendChild(el);
   }
+
+  // 월 이동 버튼 제한
+  const prevBtn = document.getElementById('t-cal-prev');
+  const nextBtn = document.getElementById('t-cal-next');
+  if (prevBtn) prevBtn.disabled = (tCurYear === T_MIN.y && tCurMonth === T_MIN.m);
+  if (nextBtn) nextBtn.disabled = (tCurYear === T_MAX.y && tCurMonth === T_MAX.m);
 };
 
 function showSlotPanel(key) {
-  document.getElementById('t-selected-date-title').textContent=
+  document.getElementById('t-selected-date-title').textContent =
     `${tCurMonth+1}월 ${tSelectedDate}일 일정 설정`;
-  const box=document.getElementById('t-category-box');
-  box.style.display='block';
-  const checks=box.querySelectorAll('input[type=checkbox]');
-  const existing=mySlotCache[key];
-  checks.forEach(cb=>{
-    cb.checked=existing?(existing.categories||[]).includes(cb.value):false;
+  const box = document.getElementById('t-category-box');
+  box.style.display = 'block';
+  const checks   = box.querySelectorAll('input[type=checkbox]');
+  const daySlots = allSlotsCache[key] || [];
+  const existing = daySlots.find(s => s.teacherEmail === currentUser?.email);
+  checks.forEach(cb => {
+    cb.checked = existing ? (existing.categories || []).includes(cb.value) : false;
   });
 }
 
-window.changeTeacherMonth=function(dir){
-  tCurMonth+=dir;
-  if(tCurMonth<0){tCurMonth=11;tCurYear--;} if(tCurMonth>11){tCurMonth=0;tCurYear++;}
-  tSelectedDate=null;
-  document.getElementById('t-category-box').style.display='none';
-  document.getElementById('t-selected-date-title').textContent='날짜를 선택해주세요';
+window.changeTeacherMonth = function(dir) {
+  let y = tCurYear, m = tCurMonth + dir;
+  if (m < 0)  { m = 11; y--; }
+  if (m > 11) { m = 0;  y++; }
+  // 범위 제한
+  if (y < T_MIN.y || (y === T_MIN.y && m < T_MIN.m)) return;
+  if (y > T_MAX.y || (y === T_MAX.y && m > T_MAX.m)) return;
+  tCurYear  = y; tCurMonth = m;
+  tSelectedDate = null;
+  document.getElementById('t-category-box').style.display = 'none';
+  document.getElementById('t-selected-date-title').textContent = '날짜를 선택해주세요';
   renderTeacherCal();
 };
 
-window.saveTeacherSlot=async function(){
-  if(!tSelectedDate||!currentUser) return;
-  const key=`${tCurYear}-${String(tCurMonth+1).padStart(2,'0')}-${String(tSelectedDate).padStart(2,'0')}`;
-  const cats=[...document.querySelectorAll('#t-category-box input:checked')].map(c=>c.value);
-  if(!cats.length){ showToast('카테고리를 하나 이상 선택해주세요.'); return; }
-  const myName=TEACHERS[currentUser.email]||currentUser.displayName||'선생님';
-  const slotDoc=doc(db,'teacherSlots',key);
-  const existing=await getDoc(slotDoc);
-  let slots=existing.exists()?(existing.data().slots||[]):[];
-  const idx=slots.findIndex(s=>s.teacherEmail===currentUser.email);
-  const newSlot={teacherEmail:currentUser.email,teacherName:myName,categories:cats};
-  if(idx>=0) slots[idx]=newSlot; else slots.push(newSlot);
-  await setDoc(slotDoc,{slots,updatedAt:Timestamp.now()});
+window.saveTeacherSlot = async function() {
+  if (!tSelectedDate || !currentUser) return;
+  const key  = `${tCurYear}-${String(tCurMonth+1).padStart(2,'0')}-${String(tSelectedDate).padStart(2,'0')}`;
+  const cats = [...document.querySelectorAll('#t-category-box input:checked')].map(c => c.value);
+  if (!cats.length) { showToast('카테고리를 하나 이상 선택해주세요.'); return; }
+  const myName   = TEACHERS[currentUser.email] || currentUser.displayName || '선생님';
+  const slotDoc  = doc(db, 'teacherSlots', key);
+  const existing = await getDoc(slotDoc);
+  let slots      = existing.exists() ? (existing.data().slots || []) : [];
+  const idx      = slots.findIndex(s => s.teacherEmail === currentUser.email);
+  const newSlot  = { teacherEmail: currentUser.email, teacherName: myName, categories: cats };
+  if (idx >= 0) slots[idx] = newSlot; else slots.push(newSlot);
+  await setDoc(slotDoc, { slots, updatedAt: Timestamp.now() });
   showToast('일정이 저장되었습니다!');
-  renderTeacherCal();
+  // onSnapshot이 자동으로 업데이트
 };
 
-window.deleteTeacherSlot=async function(){
-  if(!tSelectedDate||!currentUser) return;
-  const key=`${tCurYear}-${String(tCurMonth+1).padStart(2,'0')}-${String(tSelectedDate).padStart(2,'0')}`;
-  const slotDoc=doc(db,'teacherSlots',key);
-  const existing=await getDoc(slotDoc);
-  if(!existing.exists()) return;
-  let slots=(existing.data().slots||[]).filter(s=>s.teacherEmail!==currentUser.email);
-  if(slots.length>0) await setDoc(slotDoc,{slots,updatedAt:Timestamp.now()});
-  else await deleteDoc(slotDoc);
+window.deleteTeacherSlot = async function() {
+  if (!tSelectedDate || !currentUser) return;
+  const key      = `${tCurYear}-${String(tCurMonth+1).padStart(2,'0')}-${String(tSelectedDate).padStart(2,'0')}`;
+  const slotDoc  = doc(db, 'teacherSlots', key);
+  const existing = await getDoc(slotDoc);
+  if (!existing.exists()) return;
+  let slots = (existing.data().slots || []).filter(s => s.teacherEmail !== currentUser.email);
+  if (slots.length > 0) await setDoc(slotDoc, { slots, updatedAt: Timestamp.now() });
+  else                  await deleteDoc(slotDoc);
   showToast('해당 날짜 상담을 닫았습니다.');
-  document.getElementById('t-category-box').style.display='none';
-  renderTeacherCal();
+  document.getElementById('t-category-box').style.display = 'none';
+  tSelectedDate = null;
 };
 
-window.switchTeacherTab=function(btn){
-  const tabId=btn.dataset.tab;
-  document.querySelectorAll('.t-tab-btn').forEach(b=>b.classList.remove('active'));
-  document.querySelectorAll('.t-tab-content').forEach(c=>c.classList.remove('active'));
+window.switchTeacherTab = function(btn) {
+  const tabId = btn.dataset.tab;
+  document.querySelectorAll('.t-tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.t-tab-content').forEach(c => c.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById(tabId).classList.add('active');
-  if(tabId==='tab-approval') loadTeacherApprovals();
+  if (tabId === 'tab-approval') subscribeTeacherApprovals();
 };
 
 /* ══════════════════════════════════════
-   선생님 예약 승인
+   선생님 예약 승인 (실시간)
 ══════════════════════════════════════ */
-async function loadTeacherApprovals(){
-  if(!currentUser) return;
-  const list=document.getElementById('t-approval-list');
-  list.innerHTML='<div class="no-date-msg">불러오는 중...</div>';
-  try {
-    const q=query(collection(db,'bookings'),where('teacherEmail','==',currentUser.email),orderBy('createdAt','desc'));
-    const snap=await getDocs(q);
-    if(snap.empty){ list.innerHTML='<div class="no-date-msg">예약 내역이 없습니다.</div>'; return; }
-    list.innerHTML='';
-    snap.forEach(d=>{
-      const data=d.data(); const docId=d.id;
-      const badgeClass=data.status==='예약 확정'?'status-confirmed':data.status==='반려'?'status-rejected':'status-pending';
-      const el=document.createElement('div'); el.className='approval-card';
-      el.innerHTML=`
+function subscribeTeacherApprovals() {
+  if (!currentUser) return;
+  if (approvalsUnsubscribe) { approvalsUnsubscribe(); approvalsUnsubscribe = null; }
+  const list = document.getElementById('t-approval-list');
+  list.innerHTML = '<div class="no-date-msg">불러오는 중...</div>';
+
+  const q = query(collection(db,'bookings'), where('teacherEmail','==',currentUser.email), orderBy('createdAt','desc'));
+  approvalsUnsubscribe = onSnapshot(q, (snap) => {
+    if (snap.empty) { list.innerHTML = '<div class="no-date-msg">예약 내역이 없습니다.</div>'; return; }
+    list.innerHTML = '';
+    snap.forEach(d => {
+      const data = d.data(); const docId = d.id;
+      const badgeClass = data.status === '예약 확정' ? 'status-confirmed'
+                        : data.status === '반려'      ? 'status-rejected'
+                        : 'status-pending';
+      const el = document.createElement('div'); el.className = 'approval-card';
+      el.innerHTML = `
         <div class="approval-header">
           <strong>${data.date} · ${data.teacherName}</strong>
           <span class="status-badge ${badgeClass}">${data.status}</span>
         </div>
         <div style="font-size:13px;">신청 학생: <strong>${data.userName}</strong> (${data.email})</div>
         <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">상담 내용: ${data.memo}</div>
-        ${data.status==='예약 대기'?`
+        ${data.status === '예약 대기' ? `
         <div class="approval-actions">
           <button class="btn-action btn-confirm" onclick="approveBooking('${docId}')">승인</button>
           <button class="btn-action btn-reject"  onclick="rejectBooking('${docId}')">반려</button>
-        </div>`:''}`;
+        </div>` : ''}`;
       list.appendChild(el);
     });
-  } catch(e){ list.innerHTML='<div class="no-date-msg">불러오기 실패.</div>'; }
+  }, (e) => { list.innerHTML = '<div class="no-date-msg">불러오기 실패.</div>'; });
 }
 
-window.approveBooking=async function(docId){
-  if(!confirm('예약을 승인하시겠습니까?')) return;
-  await updateDoc(doc(db,'bookings',docId),{status:'예약 확정'});
-  showToast('예약이 확정되었습니다.'); loadTeacherApprovals();
+window.approveBooking = async function(docId) {
+  if (!confirm('예약을 승인하시겠습니까?')) return;
+  await updateDoc(doc(db,'bookings',docId), { status: '예약 확정' });
+  showToast('예약이 확정되었습니다.');
 };
-window.rejectBooking=async function(docId){
-  if(!confirm('예약을 반려하시겠습니까?')) return;
-  await updateDoc(doc(db,'bookings',docId),{status:'반려'});
-  showToast('반려 처리되었습니다.'); loadTeacherApprovals();
+window.rejectBooking = async function(docId) {
+  if (!confirm('예약을 반려하시겠습니까?')) return;
+  await updateDoc(doc(db,'bookings',docId), { status: '반려' });
+  showToast('반려 처리되었습니다.');
 };
 
 /* ══════════════════════════════════════
    진로직업체험
 ══════════════════════════════════════ */
-window.loadCareerData=async function(){
-  if(!currentUser) return;
-  const tbody=document.getElementById('career-tbody');
-  tbody.innerHTML='<tr><td colspan="4" class="career-empty">불러오는 중...</td></tr>';
+window.loadCareerData = async function() {
+  if (!currentUser) return;
+  const tbody = document.getElementById('career-tbody');
+  tbody.innerHTML = '<tr><td colspan="4" class="career-empty">불러오는 중...</td></tr>';
   try {
-    const q=query(collection(db,'careerHours'),where('email','==',currentUser.email.toLowerCase()));
-    const snap=await getDocs(q);
-    if(snap.empty){ tbody.innerHTML='<tr><td colspan="4" class="career-empty">등록된 이수 데이터가 없습니다.<br>담당 선생님께 문의해주세요.</td></tr>'; return; }
-    tbody.innerHTML='';
-    snap.forEach(d=>{
-      const r=d.data(); const tr=document.createElement('tr');
-      tr.innerHTML=`<td>${r.studentId||'-'}</td><td>${r.name||'-'}</td>
+    const q    = query(collection(db,'careerHours'), where('email','==',currentUser.email.toLowerCase()));
+    const snap = await getDocs(q);
+    if (snap.empty) {
+      tbody.innerHTML = '<tr><td colspan="4" class="career-empty">등록된 이수 데이터가 없습니다.<br>담당 선생님께 문의해주세요.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = '';
+    snap.forEach(d => {
+      const r = d.data(); const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${r.studentId||'-'}</td><td>${r.name||'-'}</td>
         <td><span class="hours-badge">${r.hours||0}시간</span></td><td>${r.memo||'-'}</td>`;
       tbody.appendChild(tr);
     });
-  } catch(e){ tbody.innerHTML='<tr><td colspan="4" class="career-empty">데이터 로드 오류.</td></tr>'; }
+  } catch(e) { tbody.innerHTML = '<tr><td colspan="4" class="career-empty">데이터 로드 오류.</td></tr>'; }
 };
 
 /* ══════════════════════════════════════
-   동아리
+   동아리 - 목록
 ══════════════════════════════════════ */
-window.loadClubs=async function(){
-  const grid=document.getElementById('club-grid'); grid.innerHTML='';
+let currentClub = null;
+let pendingPdfType = null;
+
+window.loadClubs = async function() {
+  const grid = document.getElementById('club-grid');
+  grid.innerHTML = '<div class="no-date-msg">불러오는 중...</div>';
   try {
-    const snap=await getDocs(collection(db,'clubs'));
-    if(snap.empty){ grid.innerHTML='<div class="no-data-alert">아직 동아리 데이터가 없습니다.<br>관리자 페이지에서 엑셀을 업로드해주세요.</div>'; return; }
-    snap.forEach(d=>renderClubCard(d.data()));
-  } catch(e){ grid.innerHTML='<div class="no-data-alert">데이터 로드 오류.</div>'; }
+    const snap = await getDocs(collection(db, 'clubs'));
+    if (snap.empty) {
+      grid.innerHTML = '<div class="no-data-alert">아직 동아리 데이터가 없습니다.<br>관리자 페이지에서 엑셀을 업로드해주세요.</div>';
+      return;
+    }
+    const clubs = [];
+    snap.forEach(d => clubs.push({ id: d.id, ...d.data() }));
+
+    // clubReports 병렬 로드
+    const reportsSnap = await Promise.all(clubs.map(c => getDoc(doc(db,'clubReports',c.id))));
+    const reportsMap  = {};
+    reportsSnap.forEach((r, i) => {
+      reportsMap[clubs[i].id] = r.exists() ? r.data() : {};
+    });
+
+    grid.innerHTML = '';
+    clubs.forEach(c => renderClubCard(c, reportsMap[c.id] || {}));
+
+    // 최근 활동 자랑 2개
+    loadRecentArticles();
+  } catch(e) { grid.innerHTML = '<div class="no-data-alert">데이터 로드 오류.</div>'; }
 };
 
-function renderClubCard(c){
-  const grid=document.getElementById('club-grid');
-  const el=document.createElement('div'); el.className='club-card';
-  el.innerHTML=`<div class="club-name">${c.name}</div>
-    <div class="club-meta">기장: ${c.leader} &nbsp;|&nbsp; 교실: ${c.room}${c.teacher?` &nbsp;|&nbsp; 지도교사: ${c.teacher}`:''}</div>
-    <div class="club-activity">주요활동: ${c.activity}</div>`;
-  el.onclick=()=>openClubBoard(c.name);
+function renderClubCard(c, reports) {
+  const grid = document.getElementById('club-grid');
+  const el   = document.createElement('div'); el.className = 'club-card';
+  const annualDone = !!(reports.annual?.url);
+  const midDone    = !!(reports.mid?.url);
+  const finalDone  = !!(reports.final?.url);
+  el.innerHTML = `<div class="club-name">${c.name}</div>
+    <div class="club-meta">기장: ${c.leader} &nbsp;|&nbsp; 교실: ${c.room}${c.teacher ? ` &nbsp;|&nbsp; 지도교사: ${c.teacher}` : ''}</div>
+    <div class="club-activity">주요활동: ${c.activity}</div>
+    <div class="submit-badges">
+      <span class="submit-badge ${annualDone?'done':'pending'}">${annualDone?'✅':'❌'} 연간계획서</span>
+      <span class="submit-badge ${midDone?'done':'pending'}">${midDone?'✅':'❌'} 중간보고서</span>
+      <span class="submit-badge ${finalDone?'done':'pending'}">${finalDone?'✅':'❌'} 최종보고서</span>
+    </div>`;
+  el.onclick = () => openClubBoard(c);
   grid.appendChild(el);
 }
 
-function openClubBoard(name){
-  document.getElementById('club-list-area').style.display='none';
-  document.getElementById('club-board-area').classList.add('active');
-  document.getElementById('board-club-name').textContent=name;
-  document.getElementById('post-list').innerHTML='<div class="no-date-msg">아직 게시글이 없습니다.</div>';
-}
-window.closeClubBoard=function(){
-  document.getElementById('club-list-area').style.display='block';
-  document.getElementById('club-board-area').classList.remove('active');
-};
-
-/* ══════════════════════════════════════
-   관리자 엑셀 업로드
-══════════════════════════════════════ */
-const CAREER_B64="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";
-const CLUB_B64="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";
-
-function b64ToBlob(b64,mime){
-  const bytes=atob(b64); const arr=new Uint8Array(bytes.length);
-  for(let i=0;i<bytes.length;i++) arr[i]=bytes.charCodeAt(i);
-  return new Blob([arr],{type:mime});
-}
-window.downloadCareerTemplate=function(){
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(b64ToBlob(CAREER_B64,'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'));
-  a.download='진로직업체험_양식.xlsx'; a.click();
-};
-window.downloadClubTemplate=function(){
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(b64ToBlob(CLUB_B64,'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'));
-  a.download='동아리목록_양식.xlsx'; a.click();
-};
-
-window.uploadCareerExcel=async function(input){
-  const file=input.files[0]; if(!file) return;
-  const status=document.getElementById('career-upload-status');
-  status.className='upload-status loading'; status.textContent='📂 파일 읽는 중...';
+async function loadRecentArticles() {
   try {
-    const data=await file.arrayBuffer();
-    const wb=XLSX.read(data,{type:'array'});
-    const ws=wb.Sheets[wb.SheetNames[0]];
-    // 헤더가 3행에 있으므로 range를 2행부터로 설정 (0-indexed: row 2)
-    const ref=XLSX.utils.decode_range(ws['!ref']);
-    ref.s.r=2; // 3번째 행(0-indexed=2)부터 읽기
-    ws['!ref']=XLSX.utils.encode_range(ref);
-    const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
-    const valid=rows.filter(r=>{
-      const email=String(r['이메일 (cnsa.hs.kr)']||r['이메일']||r['email']||'').trim().toLowerCase();
-      return email.endsWith('@cnsa.hs.kr') && String(r['학번']||'').trim();
+    const q    = query(collection(db,'clubArticles'), orderBy('createdAt','desc'), limit(2));
+    const snap = await getDocs(q);
+    if (snap.empty) return;
+    const section = document.getElementById('article-preview-section');
+    const pgrid   = document.getElementById('article-preview-grid');
+    pgrid.innerHTML = '';
+    snap.forEach(d => {
+      const a  = d.data();
+      const el = document.createElement('div'); el.className = 'article-preview-card';
+      const preview = stripHtml(a.content || '').substring(0, 150);
+      const dateStr  = a.createdAt ? formatDate(a.createdAt.toDate()) : '';
+      el.innerHTML = a.thumbnailUrl
+        ? `<img class="article-preview-thumb" src="${a.thumbnailUrl}" alt="썸네일" onerror="this.style.display='none'">`
+        : `<div class="article-preview-thumb-placeholder">📸</div>`;
+      el.innerHTML += `<div class="article-preview-body">
+        <div class="article-preview-club">${a.clubName || ''}</div>
+        <div class="article-preview-title">${a.title || '(제목 없음)'}</div>
+        <div class="article-preview-text">${preview}</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">${dateStr}</div>
+      </div>`;
+      el.onclick = () => openArticleView(a);
+      pgrid.appendChild(el);
     });
-    if(!valid.length){ status.className='upload-status error'; status.textContent='❌ 유효한 데이터가 없습니다. 샘플 행을 지우고 실제 데이터를 입력해주세요.'; return; }
-    status.textContent=`✏️ ${valid.length}건 저장 중...`;
-    const snap=await getDocs(collection(db,'careerHours'));
-    for(const d of snap.docs) await deleteDoc(d.ref);
-    for(const r of valid){
-      const email=String(r['이메일 (cnsa.hs.kr)']||r['이메일']||r['email']||'').trim().toLowerCase();
-      await setDoc(doc(db,'careerHours',email),{
-        studentId:String(r['학번']||'').trim(),
-        name:String(r['성명']||'').trim(), email,
-        hours:Number(r['이수 완료 시간']||0),
-        memo:String(r['메모']||'').trim(),
-        updatedAt:Timestamp.now(),
-      });
+    section.style.display = 'block';
+  } catch(e) { /* 조용히 실패 */ }
+}
+
+/* ══════════════════════════════════════
+   동아리 게시판
+══════════════════════════════════════ */
+async function openClubBoard(club) {
+  currentClub = club;
+  document.getElementById('club-list-area').style.display  = 'none';
+  document.getElementById('club-board-area').classList.add('active');
+  document.getElementById('board-club-name').textContent   = club.name;
+
+  // 업로드 패널 권한 체크
+  const isAuth = isAuthorizedForClub(club);
+  document.getElementById('club-upload-panel').style.display = isAuth ? 'block' : 'none';
+
+  // PDF 보고서 카드 로드
+  await loadPdfReportCards(club);
+
+  // 게시글 목록 로드
+  await loadClubArticles(club);
+}
+
+function isAuthorizedForClub(club) {
+  if (!currentUser) return false;
+  return currentRole === 'teacher' || currentRole === 'admin'
+    || (club.leaderEmail && currentUser.email === club.leaderEmail);
+}
+
+async function loadPdfReportCards(club) {
+  const container = document.getElementById('pdf-report-cards');
+  container.innerHTML = '';
+  let reports = {};
+  try {
+    const snap = await getDoc(doc(db,'clubReports',club.id));
+    if (snap.exists()) reports = snap.data();
+  } catch(e) { /* pass */ }
+
+  const types = [
+    { key: 'annual', label: '연간 활동계획서' },
+    { key: 'mid',    label: '중간 활동보고서' },
+    { key: 'final',  label: '최종 활동보고서' },
+  ];
+  types.forEach(t => {
+    const submitted = !!(reports[t.key]?.url);
+    const card = document.createElement('div');
+    card.className = `pdf-report-card${submitted?' submitted':''}`;
+    card.innerHTML = `<div class="pdf-report-label">${t.label}</div>
+      <div class="pdf-report-status">${submitted ? '✅' : '❌'}</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">${submitted ? '제출 완료' : '미제출'}</div>
+      ${submitted ? `<button class="btn-view-pdf" onclick="openPdfView('${reports[t.key].url}','${t.label}')">보기</button>` : ''}`;
+    container.appendChild(card);
+  });
+}
+
+async function loadClubArticles(club) {
+  const container = document.getElementById('club-articles-list');
+  container.innerHTML = '<div class="no-date-msg">불러오는 중...</div>';
+  try {
+    const q    = query(collection(db,'clubArticles'), where('clubId','==',club.id), orderBy('createdAt','desc'));
+    const snap = await getDocs(q);
+    if (snap.empty) {
+      container.innerHTML = '<div class="no-data-alert">아직 활동 자랑 게시글이 없습니다.</div>';
+      return;
     }
-    status.className='upload-status success';
-    status.textContent=`✅ ${valid.length}건 업로드 완료! 즉시 반영됩니다.`;
-    input.value='';
-  } catch(e){ status.className='upload-status error'; status.textContent='❌ 오류: '+e.message; }
+    container.innerHTML = '';
+    snap.forEach(d => {
+      const a       = d.data();
+      const preview = stripHtml(a.content || '').substring(0, 200);
+      const dateStr  = a.createdAt ? formatDate(a.createdAt.toDate()) : '';
+      const el = document.createElement('div'); el.className = 'article-item';
+      el.innerHTML = `<div class="article-item-title">${a.title || '(제목 없음)'}</div>
+        <div class="article-item-meta">${a.authorName || ''} &nbsp;·&nbsp; ${dateStr}</div>
+        <div class="article-item-preview">${preview}</div>`;
+      el.onclick = () => openArticleView(a);
+      container.appendChild(el);
+    });
+  } catch(e) { container.innerHTML = '<div class="no-data-alert">불러오기 실패.</div>'; }
+}
+
+window.closeClubBoard = function() {
+  currentClub = null;
+  document.getElementById('club-list-area').style.display = 'block';
+  document.getElementById('club-board-area').classList.remove('active');
+  document.getElementById('pdf-report-cards').innerHTML = '';
+  document.getElementById('club-articles-list').innerHTML = '';
 };
 
-window.uploadClubExcel=async function(input){
-  const file=input.files[0]; if(!file) return;
-  const status=document.getElementById('club-upload-status');
-  status.className='upload-status loading'; status.textContent='📂 파일 읽는 중...';
+/* PDF 업로드 */
+let _pendingPdfType = null;
+window.uploadClubPdf = function(type) {
+  _pendingPdfType = type;
+  document.getElementById('pdf-file-input').click();
+};
+window.handlePdfUpload = async function(input) {
+  if (!input.files[0] || !currentClub || !_pendingPdfType) return;
+  const file    = input.files[0];
+  const type    = _pendingPdfType;
+  _pendingPdfType = null;
+  input.value   = '';
+  showToast('업로드 중...');
   try {
-    const data=await file.arrayBuffer();
-    const wb=XLSX.read(data,{type:'array'});
-    const ws=wb.Sheets[wb.SheetNames[0]];
-    // 헤더가 3행에 있으므로 range를 3행부터로 설정
-    const ref=XLSX.utils.decode_range(ws['!ref']);
-    ref.s.r=2;
-    ws['!ref']=XLSX.utils.encode_range(ref);
-    const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
-    const valid=rows.filter(r=>String(r['동아리명']||'').trim());
-    if(!valid.length){ status.className='upload-status error'; status.textContent='❌ 유효한 동아리 데이터가 없습니다. 샘플 행을 지우고 실제 데이터를 입력해주세요.'; return; }
-    status.textContent=`✏️ ${valid.length}개 저장 중...`;
-    const snap=await getDocs(collection(db,'clubs'));
-    for(const d of snap.docs) await deleteDoc(d.ref);
-    for(const r of valid){
-      const name=String(r['동아리명']||'').trim();
-      await setDoc(doc(db,'clubs',name),{
-        name, leader:String(r['기장 이름']||'').trim(),
-        activity:String(r['주요활동']||'').trim(),
-        room:String(r['교실']||'').trim(),
-        teacher:String(r['지도교사']||'').trim(),
-        note:String(r['비고']||'').trim(),
-        updatedAt:Timestamp.now(),
-      });
-    }
-    status.className='upload-status success';
-    status.textContent=`✅ ${valid.length}개 업로드 완료! 즉시 반영됩니다.`;
-    input.value=''; loadClubs();
-  } catch(e){ status.className='upload-status error'; status.textContent='❌ 오류: '+e.message; }
+    const storageRef = ref(storage, `clubPDFs/${currentClub.id}/${type}.pdf`);
+    const snap       = await uploadBytes(storageRef, file);
+    const url        = await getDownloadURL(snap.ref);
+    const reportDoc  = doc(db, 'clubReports', currentClub.id);
+    const existing   = await getDoc(reportDoc);
+    const data       = existing.exists() ? existing.data() : {};
+    data[type]       = { url, uploadedAt: Timestamp.now() };
+    await setDoc(reportDoc, data);
+    showToast('업로드 완료!');
+    await loadPdfReportCards(currentClub);
+    // 클럽 목록도 리프레시
+    loadClubs();
+  } catch(e) { showToast('업로드 실패: ' + e.message); }
+};
+
+/* PDF 보기 */
+window.openPdfView = function(url, title) {
+  document.getElementById('pdf-view-title').textContent  = title;
+  document.getElementById('pdf-iframe').src              = url;
+  document.getElementById('pdf-view-modal').classList.add('open');
+};
+window.closePdfView = function() {
+  document.getElementById('pdf-view-modal').classList.remove('open');
+  document.getElementById('pdf-iframe').src = '';
 };
 
 /* ══════════════════════════════════════
-   공통 유틸
+   CKEditor & 글쓰기
 ══════════════════════════════════════ */
-window.closeModal=function(){ document.getElementById('modal-bg').classList.remove('open'); };
-window.showToast=function(msg){
-  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2800);
+let ckEditorInstance = null;
+
+window.openArticleEditor = async function() {
+  document.getElementById('article-title-input').value = '';
+  document.getElementById('editor-modal').classList.add('open');
+  if (ckEditorInstance) { await ckEditorInstance.destroy(); ckEditorInstance = null; }
+  document.getElementById('ck-editor-wrap').innerHTML = '';
+  try {
+    ckEditorInstance = await ClassicEditor.create(document.getElementById('ck-editor-wrap'), {
+      toolbar: ['heading','|','bold','italic','underline','|','bulletedList','numberedList',
+                'insertTable','|','imageUpload','link','|','undo','redo'],
+      extraPlugins: [UploadAdapterPlugin],
+    });
+  } catch(e) { showToast('에디터 초기화 실패: ' + e.message); }
 };
+
+window.closeArticleEditor = async function() {
+  document.getElementById('editor-modal').classList.remove('open');
+  if (ckEditorInstance) { await ckEditorInstance.destroy(); ckEditorInstance = null; }
+};
+
+window.submitArticle = async function() {
+  if (!currentClub || !currentUser) return;
+  const title   = document.getElementById('article-title-input').value.trim();
+  const content = ckEditorInstance ? ckEditorInstance.getData() : '';
+  if (!title)   { showToast('제목을 입력해주세요.'); return; }
+  if (!content) { showToast('내용을 입력해주세요.'); return; }
+
+  // 썸네일: 첫 번째 <img> src 추출
+  const imgMatch     = content.match(/<img[^>]+src=["']([^"']+)["']/i);
+  const thumbnailUrl = imgMatch ? imgMatch[1] : null;
+
+  try {
+    await addDoc(collection(db,'clubArticles'), {
+      clubId:      currentClub.id,
+      clubName:    currentClub.name,
+      title,
+      content,
+      authorEmail: currentUser.email,
+      authorName:  currentUser.displayName || currentUser.email,
+      createdAt:   Timestamp.now(),
+      thumbnailUrl,
+    });
+    showToast('게시글이 등록되었습니다!');
+    await closeArticleEditor();
+    await loadClubArticles(currentClub);
+    loadRecentArticles(); // 메인 목록 갱신
+  } catch(e) { showToast('저장 실패: ' + e.message); }
+};
+
+/* 글 보기 */
+function openArticleView(article) {
+  document.getElementById('article-view-club-name').textContent = article.clubName || '';
+  document.getElementById('article-view-title').textContent     = article.title    || '(제목 없음)';
+  const dateStr = article.createdAt ? formatDate(article.createdAt.toDate ? article.createdAt.toDate() : new Date(article.createdAt)) : '';
+  document.getElementById('article-view-meta').textContent      = `${article.authorName || ''} · ${dateStr}`;
+  document.getElementById('article-view-content').innerHTML     = article.content  || '';
+  document.getElementById('article-view-modal').classList.add('open');
+}
+window.closeArticleView = function() {
+  document.getElementById('article-view-modal').classList.remove('open');
+};
+
+/* ══════════════════════════════════════
+   관리자 - 엑셀 다운로드/업로드
+══════════════════════════════════════ */
+window.downloadCareerTemplate = function() {
+  const wb  = XLSX.utils.book_new();
+  const ws  = XLSX.utils.aoa_to_sheet([
+    ['진로직업체험 이수시간 입력 양식'],
+    ['아래 4번 행부터 데이터를 입력하세요. 이메일은 반드시 @cnsa.hs.kr 도메인이어야 합니다.'],
+    ['학번', '성명', '이메일', '이수 완료 시간', '메모'],
+    ['20240001', '홍길동', 'hong@cnsa.hs.kr', '8', '체험 우수'],
+  ]);
+  XLSX.utils.book_append_sheet(wb, ws, '양식');
+  XLSX.writeFile(wb, '진로체험_이수시간_양식.xlsx');
+};
+
+window.uploadCareerExcel = async function(input) {
+  const file = input.files[0]; if (!file) return;
+  const st   = document.getElementById('career-upload-status');
+  st.className = 'upload-status loading'; st.textContent = '업로드 중...'; st.style.display = 'block';
+  try {
+    const buf  = await file.arrayBuffer();
+    const wb   = XLSX.read(buf, { type: 'array' });
+    const ws   = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+    let count  = 0;
+    for (let i = 1; i < rows.length; i++) {
+      const r = rows[i];
+      if (!r[2] || !String(r[2]).includes('@')) continue;
+      const email = String(r[2]).trim().toLowerCase();
+      await setDoc(doc(db,'careerHours',email), {
+        studentId: String(r[0]||''), name: String(r[1]||''), email,
+        hours: Number(r[3])||0, memo: String(r[4]||''), updatedAt: Timestamp.now(),
+      });
+      count++;
+    }
+    st.className = 'upload-status success'; st.textContent = `✅ ${count}명 데이터 업로드 완료`;
+  } catch(e) { st.className = 'upload-status error'; st.textContent = '❌ 오류: ' + e.message; }
+  input.value = '';
+};
+
+window.downloadClubTemplate = function() {
+  const wb  = XLSX.utils.book_new();
+  const ws  = XLSX.utils.aoa_to_sheet([
+    ['동아리 목록 입력 양식'],
+    ['아래 4번 행부터 데이터를 입력하세요. 기장 이메일은 @cnsa.hs.kr 학생 계정이어야 합니다.'],
+    ['동아리명', '기장 이름', '기장 이메일', '주요활동', '교실', '지도교사', '비고'],
+    ['코딩부', '김코딩', 'coding@cnsa.hs.kr', '앱 개발 및 알고리즘 대회 준비', '3층 컴퓨터실', '이현우', ''],
+  ]);
+  XLSX.utils.book_append_sheet(wb, ws, '양식');
+  XLSX.writeFile(wb, '동아리_목록_양식.xlsx');
+};
+
+window.uploadClubExcel = async function(input) {
+  const file = input.files[0]; if (!file) return;
+  const st   = document.getElementById('club-upload-status');
+  st.className = 'upload-status loading'; st.textContent = '업로드 중...'; st.style.display = 'block';
+  try {
+    const buf  = await file.arrayBuffer();
+    const wb   = XLSX.read(buf, { type: 'array' });
+    const ws   = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+    let count  = 0;
+    for (let i = 1; i < rows.length; i++) {
+      const r = rows[i];
+      if (!r[0]) continue;
+      const name = String(r[0]).trim();
+      const id   = name; // 동아리명을 ID로 사용
+      await setDoc(doc(db,'clubs',id), {
+        name,
+        leader:      String(r[1]||''),
+        leaderEmail: String(r[2]||'').trim().toLowerCase(),
+        activity:    String(r[3]||''),
+        room:        String(r[4]||''),
+        teacher:     String(r[5]||''),
+        note:        String(r[6]||''),
+        updatedAt:   Timestamp.now(),
+      });
+      count++;
+    }
+    st.className = 'upload-status success'; st.textContent = `✅ ${count}개 동아리 데이터 업로드 완료`;
+    loadClubs();
+  } catch(e) { st.className = 'upload-status error'; st.textContent = '❌ 오류: ' + e.message; }
+  input.value = '';
+};
+
+/* ══════════════════════════════════════
+   유틸리티
+══════════════════════════════════════ */
+function stripHtml(html) {
+  const div = document.createElement('div');
+  div.innerHTML = html;
+  return div.textContent || div.innerText || '';
+}
+
+function formatDate(d) {
+  if (!d) return '';
+  return `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일`;
+}
+
+window.closeModal = function() { document.getElementById('modal-bg').classList.remove('open'); };
+
+let toastTimer = null;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+}
+window.showToast = showToast;
+
 </script>
 </body>
 </html>

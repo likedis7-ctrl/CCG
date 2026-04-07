@@ -2,17 +2,14 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // 관리자 이메일
     function isAdmin() {
       return request.auth != null && request.auth.token.email == 'likedis7@cnsa.hs.kr';
     }
 
-    // CNSA 계정 로그인 여부
     function isCNSA() {
       return request.auth != null && request.auth.token.email.matches('.*@cnsa\\.hs\\.kr');
     }
 
-    // 선생님 목록
     function isTeacher() {
       return request.auth != null && request.auth.token.email in [
         'kim@cnsa.hs.kr', 'lee@cnsa.hs.kr', 'park@cnsa.hs.kr',
@@ -20,13 +17,17 @@ service cloud.firestore {
       ];
     }
 
-    // 선생님 상담 슬롯: CNSA 계정이면 읽기 가능, 선생님/관리자만 쓰기
+    function isClubLeader(clubId) {
+      return get(/databases/$(database)/documents/clubs/$(clubId)).data.leaderEmail == request.auth.token.email;
+    }
+
+    // 선생님 상담 슬롯
     match /teacherSlots/{dateKey} {
       allow read: if isCNSA();
       allow write: if isTeacher() || isAdmin();
     }
 
-    // 예약: 본인 예약 생성/조회, 담당 선생님은 상태 변경, 관리자는 모두
+    // 예약
     match /bookings/{bookingId} {
       allow read: if isCNSA() && (
         resource.data.uid == request.auth.uid ||
@@ -34,11 +35,11 @@ service cloud.firestore {
         isAdmin()
       );
       allow create: if isCNSA();
-      allow update: if isAdmin() || isTeacher() && resource.data.teacherEmail == request.auth.token.email;
+      allow update: if isAdmin() || (isTeacher() && resource.data.teacherEmail == request.auth.token.email);
       allow delete: if isAdmin();
     }
 
-    // 진로체험 이수시간: 본인 데이터만 조회, 관리자만 쓰기
+    // 진로체험 이수시간
     match /careerHours/{email} {
       allow read: if isCNSA() && (
         request.auth.token.email.lower() == email || isAdmin()
@@ -46,10 +47,26 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // 동아리: CNSA 계정이면 읽기, 관리자만 쓰기
+    // 동아리 목록
     match /clubs/{clubId} {
       allow read: if isCNSA();
       allow write: if isAdmin();
+    }
+
+    // 동아리 PDF 보고서
+    match /clubReports/{clubId} {
+      allow read: if isCNSA();
+      allow write: if isTeacher() || isAdmin() || isClubLeader(clubId);
+    }
+
+    // 동아리 아티클
+    match /clubArticles/{articleId} {
+      allow read: if isCNSA();
+      allow create: if isCNSA() && (
+        isTeacher() || isAdmin() ||
+        get(/databases/$(database)/documents/clubs/$(request.resource.data.clubId)).data.leaderEmail == request.auth.token.email
+      );
+      allow update, delete: if isAdmin() || resource.data.authorEmail == request.auth.token.email;
     }
   }
 }
