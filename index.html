@@ -571,7 +571,19 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
         <div class="upload-status" id="club-upload-status"></div>
       </div>
     </div>
+    <div class="admin-section" style="border: 1px solid var(--navy);">
+      <div class="admin-section-title">동아리 게시판 쓰기 권한</div>
+      <div class="admin-desc">활성화 시 각 동아리 기장이 활동 자랑 게시글을 작성할 수 있습니다.</div>
+      <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
+        <div id="club-write-status" style="font-size:13px; font-weight:500;"></div>
+        <div class="admin-actions">
+          <button class="btn-upload" onclick="setClubWriting(true)">✅ 게시판 쓰기 활성화</button>
+          <button class="btn-slot-del" style="padding:0.55rem 1.1rem; font-size:13px;" onclick="setClubWriting(false)">🚫 게시판 쓰기 비활성화</button>
+        </div>
+      </div>
+    </div>
   </div>
+
 
 </main>
 
@@ -822,6 +834,7 @@ window.showSection = function(key) {
     }
   }
   if (key === 'career') loadCareerData();
+  if (key === 'admin') loadClubWriteStatus();
   if (key === 'club') {
     document.getElementById('club-list-area').style.display = 'block';
     document.getElementById('club-board-area').classList.remove('active');
@@ -1195,6 +1208,34 @@ window.loadCareerData = async function() {
 };
 
 /* ══════════════════════════════════════
+   동아리 게시판 쓰기 권한
+══════════════════════════════════════ */
+async function getClubWritingEnabled() {
+  try {
+    const snap = await getDoc(doc(db, 'settings', 'clubWriting'));
+    return snap.exists() ? snap.data().enabled !== false : true; // 기본값: 활성화
+  } catch(e) { return true; }
+}
+
+window.setClubWriting = async function(enabled) {
+  await setDoc(doc(db, 'settings', 'clubWriting'), { enabled });
+  showToast(enabled ? '게시판 쓰기가 활성화되었습니다.' : '게시판 쓰기가 비활성화되었습니다.');
+  updateClubWriteStatusUI(enabled);
+};
+
+async function updateClubWriteStatusUI(enabled) {
+  const el = document.getElementById('club-write-status');
+  if (!el) return;
+  el.textContent = enabled ? '현재 상태: 활성화' : '현재 상태: 비활성화';
+  el.style.color  = enabled ? '#2E7D32' : '#C62828';
+}
+
+async function loadClubWriteStatus() {
+  const enabled = await getClubWritingEnabled();
+  updateClubWriteStatusUI(enabled);
+}
+
+/* ══════════════════════════════════════
    동아리 - 목록
 ══════════════════════════════════════ */
 let currentClub    = null;
@@ -1431,6 +1472,14 @@ window.closePdfView = function() {
 let ckEditorInstance = null;
 
 window.openArticleEditor = async function() {
+  // 관리자/선생님은 항상 허용, 기장은 설정 확인
+  if (currentRole !== 'admin' && currentRole !== 'teacher') {
+    const enabled = await getClubWritingEnabled();
+    if (!enabled) {
+      showToast('현재는 동아리 게시판 쓰기 기능이 비활성화되어있습니다. 동아리 담당선생님께 문의해주세요.');
+      return;
+    }
+  }
   _editingArticleId = null;
   document.querySelector('#editor-modal .full-modal-title').textContent = '활동 자랑 작성';
   document.querySelector('#editor-modal .full-modal-footer .btn-slot-save').textContent = '게시하기';
