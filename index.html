@@ -366,6 +366,12 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
         <div class="nav-item admin-nav" id="nav-admin" onclick="showSection('admin')">⚙ 관리자</div>
       </div>
       <div class="user-info">
+        <div style="display:flex;align-items:center;gap:4px;padding-right:10px;border-right:1px solid rgba(255,255,255,0.15);">
+          <span style="color:rgba(255,255,255,0.45);font-size:11px;">학년도</span>
+          <select id="year-select" onchange="changeYear(this.value)"
+            style="background:rgba(255,255,255,0.1);border:0.5px solid rgba(255,255,255,0.3);color:white;border-radius:4px;padding:2px 6px;font-size:12px;font-family:var(--font-body);cursor:pointer;outline:none;">
+          </select>
+        </div>
         <div class="user-avatar" id="user-avatar-wrap"><span id="user-initial">?</span></div>
         <span class="user-name" id="user-name-display"></span>
         <button class="btn-logout" onclick="doLogout()">로그아웃</button>
@@ -710,6 +716,25 @@ function UploadAdapterPlugin(editor) {
 
 let currentUser = null;
 let currentRole = 'student'; // student | teacher | admin
+let siteYear    = new Date().getFullYear();
+
+function initYearSelect() {
+  const sel = document.getElementById('year-select');
+  sel.innerHTML = '';
+  const thisYear = new Date().getFullYear();
+  for (let y = thisYear; y >= thisYear - 4; y--) {
+    const opt = document.createElement('option');
+    opt.value = y; opt.textContent = `${y}년`;
+    if (y === siteYear) opt.selected = true;
+    sel.appendChild(opt);
+  }
+}
+
+window.changeYear = function(y) {
+  siteYear = parseInt(y);
+  loadClubs();
+  loadCareerData();
+};
 
 /* 실시간 구독 핸들 */
 let slotsUnsubscribe    = null;
@@ -752,6 +777,7 @@ onAuthStateChanged(auth, async (user) => {
     mainNav.style.display  = 'block';
     mainCont.style.display = 'block';
 
+    initYearSelect();
     showSection('intro');
     loadCareerData();
     loadClubs();
@@ -1154,7 +1180,7 @@ window.loadCareerData = async function() {
   const tbody = document.getElementById('career-tbody');
   tbody.innerHTML = '<tr><td colspan="4" class="career-empty">불러오는 중...</td></tr>';
   try {
-    const q    = query(collection(db,'careerHours'), where('email','==',currentUser.email.toLowerCase()));
+    const q    = query(collection(db,'careerHours'), where('email','==',currentUser.email.toLowerCase()), where('year','==',siteYear));
     const snap = await getDocs(q);
     if (snap.empty) {
       tbody.innerHTML = '<tr><td colspan="4" class="career-empty">등록된 이수 데이터가 없습니다.<br>담당 선생님께 문의해주세요.</td></tr>';
@@ -1182,7 +1208,7 @@ window.loadClubs = async function() {
   const grid = document.getElementById('club-grid');
   grid.innerHTML = '<div class="no-date-msg">불러오는 중...</div>';
   try {
-    const snap = await getDocs(collection(db, 'clubs'));
+    const snap = await getDocs(query(collection(db, 'clubs'), where('year', '==', siteYear)));
     if (snap.empty) {
       grid.innerHTML = '<div class="no-data-alert">아직 동아리 데이터가 없습니다.<br>관리자 페이지에서 엑셀을 업로드해주세요.</div>';
       return;
@@ -1231,7 +1257,7 @@ function renderClubCard(c, reports) {
 
 async function loadRecentArticles() {
   try {
-    const q    = query(collection(db,'clubArticles'), orderBy('createdAt','desc'), limit(2));
+    const q    = query(collection(db,'clubArticles'), where('year','==',siteYear), orderBy('createdAt','desc'), limit(2));
     const snap = await getDocs(q);
     if (snap.empty) {
       document.getElementById('article-preview-section').style.display = 'none';
@@ -1292,8 +1318,9 @@ async function loadPdfReportCards(club) {
   const container = document.getElementById('pdf-report-cards');
   container.innerHTML = '';
   let reports = {};
+  const reportDocId = `${siteYear}_${club.name}`;
   try {
-    const snap = await getDoc(doc(db,'clubReports',club.id));
+    const snap = await getDoc(doc(db,'clubReports', reportDocId));
     if (snap.exists()) reports = snap.data();
   } catch(e) { /* pass */ }
 
@@ -1318,7 +1345,7 @@ async function loadClubArticles(club) {
   const container = document.getElementById('club-articles-list');
   container.innerHTML = '<div class="no-date-msg">불러오는 중...</div>';
   try {
-    const q    = query(collection(db,'clubArticles'), where('clubId','==',club.id), orderBy('createdAt','desc'));
+    const q    = query(collection(db,'clubArticles'), where('clubId','==',club.name), where('year','==',siteYear), orderBy('createdAt','desc'));
     const snap = await getDocs(q);
     if (snap.empty) {
       container.innerHTML = '<div class="no-data-alert">아직 활동 자랑 게시글이 없습니다.</div>';
@@ -1369,14 +1396,14 @@ window.handlePdfUpload = async function(input) {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('upload_preset', 'ccg_preset');
-    formData.append('public_id', `clubPDFs/${currentClub.id}/${type}`);
+    formData.append('public_id', `clubPDFs/${siteYear}_${currentClub.name}/${type}`);
     const res  = await fetch('https://api.cloudinary.com/v1_1/dl0d1gakg/raw/upload', {
       method: 'POST', body: formData,
     });
     const json = await res.json();
     if (!json.secure_url) throw new Error(json.error?.message || '업로드 실패');
     const url      = json.secure_url;
-    const reportDoc = doc(db, 'clubReports', currentClub.id);
+    const reportDoc = doc(db, 'clubReports', `${siteYear}_${currentClub.name}`);
     const existing  = await getDoc(reportDoc);
     const data      = existing.exists() ? existing.data() : {};
     data[type]      = { url, uploadedAt: Timestamp.now() };
@@ -1449,8 +1476,9 @@ window.submitArticle = async function() {
     } else {
       // 신규 작성
       await addDoc(collection(db,'clubArticles'), {
-        clubId:      currentClub.id,
+        clubId:      currentClub.name,
         clubName:    currentClub.name,
+        year:        siteYear,
         title,
         content,
         authorEmail: currentUser.email,
@@ -1551,8 +1579,9 @@ window.uploadCareerExcel = async function(input) {
       const r = rows[i];
       if (!r[2] || !String(r[2]).includes('@')) continue;
       const email = String(r[2]).trim().toLowerCase();
-      await setDoc(doc(db,'careerHours',email), {
+      await setDoc(doc(db,'careerHours',`${siteYear}_${email}`), {
         studentId: String(r[0]||''), name: String(r[1]||''), email,
+        year: siteYear,
         hours: Number(r[3])||0, memo: String(r[4]||''), updatedAt: Timestamp.now(),
       });
       count++;
@@ -1583,8 +1612,8 @@ window.uploadClubExcel = async function(input) {
     const wb   = XLSX.read(buf, { type: 'array' });
     const ws   = wb.Sheets[wb.SheetNames[0]];
     const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
-    // 기존 동아리 전체 삭제
-    const existingSnap = await getDocs(collection(db,'clubs'));
+    // 해당 연도 동아리만 삭제
+    const existingSnap = await getDocs(query(collection(db,'clubs'), where('year','==',siteYear)));
     await Promise.all(existingSnap.docs.map(d => deleteDoc(d.ref)));
 
     let count  = 0;
@@ -1596,8 +1625,9 @@ window.uploadClubExcel = async function(input) {
       const rooms    = [r[7], r[8], r[9]].map(v => String(v||'').trim()).filter(Boolean);
       // 지도교사: 빈 값 제거 후 합치기
       const teachers = [r[2], r[3], r[4]].map(v => String(v||'').trim()).filter(Boolean);
-      await setDoc(doc(db,'clubs', name), {
+      await setDoc(doc(db,'clubs', `${siteYear}_${name}`), {
         name,
+        year:         siteYear,
         category:     String(r[1]||'').trim(),
         teacher1:     String(r[2]||'').trim(),
         teacher2:     String(r[3]||'').trim(),
