@@ -366,12 +366,6 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
         <div class="nav-item admin-nav" id="nav-admin" onclick="showSection('admin')">⚙ 관리자</div>
       </div>
       <div class="user-info">
-        <div style="display:flex;align-items:center;gap:4px;padding-right:10px;border-right:1px solid rgba(255,255,255,0.15);">
-          <span style="color:rgba(255,255,255,0.45);font-size:11px;">학년도</span>
-          <select id="year-select" onchange="changeYear(this.value)"
-            style="background:rgba(255,255,255,0.1);border:0.5px solid rgba(255,255,255,0.3);color:white;border-radius:4px;padding:2px 6px;font-size:12px;font-family:var(--font-body);cursor:pointer;outline:none;">
-          </select>
-        </div>
         <div class="user-avatar" id="user-avatar-wrap"><span id="user-initial">?</span></div>
         <span class="user-name" id="user-name-display"></span>
         <button class="btn-logout" onclick="doLogout()">로그아웃</button>
@@ -1594,8 +1588,6 @@ window.uploadCareerExcel = async function(input) {
 window.downloadClubTemplate = function() {
   const wb  = XLSX.utils.book_new();
   const ws  = XLSX.utils.aoa_to_sheet([
-    ['동아리 목록 입력 양식'],
-    ['아래 4번 행부터 데이터를 입력하세요. 기장 이메일은 @cnsa.hs.kr 학생 계정이어야 합니다.'],
     ['동아리명', '분류', '지도교사1', '지도교사2', '지도교사3', '배정인원', '3학년학생', '교실1', '교실2', '교실3', '기장 성명', '기장 이메일'],
     ['코딩부', '교과연계(진로기반)', '이대석', '', '', '30', '10', 'S108', '', '', '김코딩', 'coding@cnsa.hs.kr'],
   ]);
