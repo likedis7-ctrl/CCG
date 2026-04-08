@@ -684,14 +684,19 @@ const auth    = getAuth(app);
 const db      = getFirestore(app);
 const storage = getStorage(app);
 
-/* CKEditor 이미지 업로드 어댑터 */
+/* CKEditor 이미지 업로드 어댑터 (Cloudinary) */
 function createUploadAdapter(loader) {
   return {
     upload: () => loader.file.then(async file => {
-      const storageRef = ref(storage, `articleImages/${Date.now()}_${file.name}`);
-      const snap = await uploadBytes(storageRef, file);
-      const url  = await getDownloadURL(snap.ref);
-      return { default: url };
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', 'ccg_preset');
+      const res  = await fetch('https://api.cloudinary.com/v1_1/dl0d1gakg/image/upload', {
+        method: 'POST', body: formData,
+      });
+      const json = await res.json();
+      if (!json.secure_url) throw new Error(json.error?.message || '업로드 실패');
+      return { default: json.secure_url };
     })
   };
 }
