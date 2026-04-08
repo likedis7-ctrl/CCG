@@ -12,13 +12,23 @@ service cloud.firestore {
 
     function isTeacher() {
       return request.auth != null && request.auth.token.email in [
-        'kim@cnsa.hs.kr', 'lee@cnsa.hs.kr', 'park@cnsa.hs.kr',
-        'choi@cnsa.hs.kr', 'jung@cnsa.hs.kr', 'han@cnsa.hs.kr', 'oh@cnsa.hs.kr'
+        'likedis7@cnsa.hs.kr',
+        'englandpark@cnsa.hs.kr',
+        'kihjohn@cnsa.hs.kr',
+        'sujishin@cnsa.hs.kr',
+        'jw2575@cnsa.hs.kr',
+        'fineapple@cnsa.hs.kr',
+        'edaemanse@cnsa.hs.kr',
+        'guswjd2561@cnsa.hs.kr'
       ];
     }
 
-    function isClubLeader(clubId) {
-      return get(/databases/$(database)/documents/clubs/$(clubId)).data.leaderEmail == request.auth.token.email;
+    function isVeritasEditor() {
+      return isCNSA() && (
+        isAdmin() ||
+        get(/databases/$(database)/documents/settings/veritasEditors)
+          .data.emails.hasAny([request.auth.token.email])
+      );
     }
 
     // 선생님 상담 슬롯
@@ -35,38 +45,53 @@ service cloud.firestore {
         isAdmin()
       );
       allow create: if isCNSA();
-      allow update: if isAdmin() || (isTeacher() && resource.data.teacherEmail == request.auth.token.email);
+      allow update: if isAdmin() ||
+        (isTeacher() && resource.data.teacherEmail == request.auth.token.email);
       allow delete: if isAdmin();
     }
 
-    // 진로체험 이수시간
-    match /careerHours/{email} {
+    // 진로체험 이수시간 (doc ID: ${year}_${email})
+    match /careerHours/{docId} {
       allow read: if isCNSA() && (
-        request.auth.token.email.lower() == email || isAdmin()
+        resource.data.email == request.auth.token.email.lower() || isAdmin()
       );
       allow write: if isAdmin();
     }
 
-    // 동아리 목록
+    // 동아리 목록 (doc ID: ${year}_${clubName})
     match /clubs/{clubId} {
       allow read: if isCNSA();
       allow write: if isAdmin();
     }
 
-    // 동아리 PDF 보고서
-    match /clubReports/{clubId} {
+    // 동아리 PDF 보고서 (doc ID: ${year}_${clubName})
+    match /clubReports/{reportId} {
       allow read: if isCNSA();
-      allow write: if isTeacher() || isAdmin() || isClubLeader(clubId);
+      allow write: if isTeacher() || isAdmin() ||
+        (isCNSA() &&
+          get(/databases/$(database)/documents/clubs/$(reportId))
+            .data.leaderEmail == request.auth.token.email);
     }
 
     // 동아리 아티클
     match /clubArticles/{articleId} {
       allow read: if isCNSA();
-      allow create: if isCNSA() && (
-        isTeacher() || isAdmin() ||
-        get(/databases/$(database)/documents/clubs/$(request.resource.data.clubId)).data.leaderEmail == request.auth.token.email
-      );
-      allow update, delete: if isAdmin() || resource.data.authorEmail == request.auth.token.email;
+      // 작성 권한: 선생님/관리자 or CNSA 인증 사용자 (기장 여부는 클라이언트에서 제어)
+      allow create: if isCNSA();
+      allow update, delete: if isAdmin() ||
+        resource.data.authorEmail == request.auth.token.email;
+    }
+
+    // VERITAS CNSA 소식지
+    match /veritasIssues/{issueId} {
+      allow read: if isCNSA();
+      allow write: if isVeritasEditor();
+    }
+
+    // 전역 설정 (clubWriting, veritasEditors 등)
+    match /settings/{settingId} {
+      allow read: if isCNSA();
+      allow write: if isAdmin();
     }
   }
 }

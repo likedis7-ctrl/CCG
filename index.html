@@ -363,6 +363,7 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
         <div class="nav-item"        id="nav-booking" onclick="showSection('booking')">상담 신청</div>
         <div class="nav-item"        id="nav-career"  onclick="showSection('career')">진로체험시간</div>
         <div class="nav-item"        id="nav-club"    onclick="showSection('club')">동아리활동</div>
+        <div class="nav-item"        id="nav-veritas" onclick="showSection('veritas')">VERITAS CNSA</div>
         <div class="nav-item admin-nav" id="nav-admin" onclick="showSection('admin')">⚙ 관리자</div>
       </div>
       <div class="user-info">
@@ -410,6 +411,9 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
       </div>
       <div class="booking-layout">
         <div class="calendar-wrap">
+          <div style="background:var(--accent-light);color:#7A5E00;font-size:12px;font-weight:500;padding:8px 12px;border-radius:8px;margin-bottom:1rem;text-align:center;">
+            📢 모든 상담은 점심시간에 진행됩니다
+          </div>
           <div class="cal-header">
             <div class="cal-title" id="cal-title"></div>
             <!-- 학생은 현재 달만 보임 (내비 없음) -->
@@ -462,9 +466,11 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
             <p>선택한 날짜에 상담을 열어둘 카테고리를 체크하고 저장하세요.</p>
             <div id="t-category-box" style="display:none;">
               <div class="category-checkboxes">
+                <label style="font-weight:500;color:var(--navy);"><input type="checkbox" value="모두" onchange="toggleAllCategories(this)"> 모두</label>
                 <label><input type="checkbox" value="수시/학종"> 수시/학종</label>
                 <label><input type="checkbox" value="정시/수능"> 정시/수능</label>
                 <label><input type="checkbox" value="진로탐색"> 진로탐색</label>
+                <label><input type="checkbox" value="학습방법"> 학습방법</label>
                 <label><input type="checkbox" value="기타상담"> 기타상담</label>
               </div>
               <button class="btn-slot-save" onclick="saveTeacherSlot()">일정 열기 / 수정하기</button>
@@ -542,7 +548,30 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
     </div>
   </div>
 
-  <!-- 5. 관리자 -->
+  <!-- 5. VERITAS CNSA -->
+  <div class="section" id="sec-veritas">
+    <div class="section-header">
+      <div>
+        <div class="section-title">VERITAS CNSA</div>
+        <div class="section-sub">진로진학 소식지 베리타스 큰사</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <select id="veritas-issue-select" onchange="selectVeritasIssue(this.value)"
+          style="border:0.5px solid var(--border);border-radius:6px;padding:4px 10px;font-size:13px;font-family:var(--font-body);background:var(--white);color:var(--navy);outline:none;cursor:pointer;">
+        </select>
+        <button id="veritas-upload-btn"   class="btn-upload"    style="display:none;padding:0.45rem 1rem;font-size:13px;" onclick="openVeritasUpload(false)">📄 PDF 업로드</button>
+        <button id="veritas-reupload-btn" class="btn-download"  style="display:none;padding:0.45rem 1rem;font-size:13px;" onclick="openVeritasUpload(true)">🔄 재업로드</button>
+        <button id="veritas-delete-btn"   class="btn-slot-del"  style="display:none;width:auto;padding:0.45rem 1rem;font-size:13px;" onclick="deleteVeritasIssue()">🗑 삭제</button>
+      </div>
+    </div>
+    <div id="veritas-empty"       class="no-data-alert" style="display:none;">아직 업로드된 소식지가 없습니다.</div>
+    <div id="veritas-viewer-wrap" style="display:none;">
+      <div id="veritas-issue-label" style="font-size:13px;color:var(--text-muted);margin-bottom:0.5rem;"></div>
+      <iframe id="veritas-iframe" style="width:100%;height:78vh;border:none;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,0.08);" src=""></iframe>
+    </div>
+  </div>
+
+  <!-- 6. 관리자 -->
   <div class="section" id="sec-admin">
     <div class="section-header">
       <div class="section-title">관리자 전용 대시보드</div>
@@ -582,10 +611,47 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
         </div>
       </div>
     </div>
+    <!-- VERITAS CNSA 편집자 관리 -->
+    <div class="admin-section" style="margin-top:1.5rem;">
+      <div class="admin-section-title">VERITAS CNSA 편집자(EDITOR) 관리</div>
+      <div class="admin-desc">소식지 PDF를 업로드할 수 있는 EDITOR 권한을 부여합니다. 이메일을 입력 후 추가하세요.</div>
+      <div id="veritas-editor-list" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:1rem;"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <input type="text" id="veritas-editor-input" placeholder="student@cnsa.hs.kr (여러 명은 쉼표로 구분)"
+          style="flex:1;padding:0.5rem 0.75rem;border:0.5px solid var(--border);border-radius:8px;font-size:13px;font-family:var(--font-body);outline:none;min-width:220px;background:var(--bg);"
+          onkeydown="if(event.key==='Enter')addVeritasEditors()">
+        <button class="btn-upload" onclick="addVeritasEditors()" style="padding:0.55rem 1.1rem;font-size:13px;">추가</button>
+      </div>
+    </div>
   </div>
 
 
 </main>
+
+<!-- VERITAS 업로드 모달 -->
+<div class="modal-bg" id="veritas-upload-modal">
+  <div class="modal" style="max-width:360px;text-align:left;">
+    <div class="modal-icon">📰</div>
+    <h3 style="font-family:var(--font-heading);font-size:17px;margin-bottom:0.75rem;color:var(--navy);">몇 년 몇 월호인지 설정해주세요</h3>
+    <div style="display:flex;gap:8px;margin-bottom:1.25rem;">
+      <select id="veritas-sel-year"
+        style="flex:1;padding:0.5rem;border:0.5px solid var(--border);border-radius:8px;font-size:13px;font-family:var(--font-body);background:var(--bg);outline:none;">
+      </select>
+      <select id="veritas-sel-month"
+        style="flex:1;padding:0.5rem;border:0.5px solid var(--border);border-radius:8px;font-size:13px;font-family:var(--font-body);background:var(--bg);outline:none;">
+        <option value="1">1월</option><option value="2">2월</option><option value="3">3월</option>
+        <option value="4">4월</option><option value="5">5월</option><option value="6">6월</option>
+        <option value="7">7월</option><option value="8">8월</option><option value="9">9월</option>
+        <option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
+      </select>
+    </div>
+    <input type="file" id="veritas-file-input" class="file-input" accept=".pdf" onchange="handleVeritasUpload(this)">
+    <div style="display:flex;gap:8px;">
+      <button class="btn-upload" style="flex:1;padding:0.6rem;" onclick="document.getElementById('veritas-file-input').click()">PDF 파일 선택</button>
+      <button class="modal-ok" style="background:none;border:0.5px solid var(--border);color:var(--text);" onclick="closeVeritasUpload()">취소</button>
+    </div>
+  </div>
+</div>
 
 <!-- 푸터 -->
 <footer>
@@ -712,6 +778,10 @@ const storage = getStorage(app);
 function createUploadAdapter(loader) {
   return {
     upload: () => loader.file.then(async file => {
+      if (file.size > 5 * 1024 * 1024) {
+        showToast('이미지 용량이 5MB를 초과했습니다. 더 작은 이미지를 사용해주세요.');
+        throw new Error('이미지 용량 초과 (최대 5MB)');
+      }
       const formData = new FormData();
       formData.append('file', file);
       formData.append('upload_preset', 'ccg_preset');
@@ -805,7 +875,7 @@ onAuthStateChanged(auth, async (user) => {
 /* ══════════════════════════════════════
    네비게이션
 ══════════════════════════════════════ */
-const ALL_SECTIONS = ['intro','booking','career','club','admin'];
+const ALL_SECTIONS = ['intro','booking','career','club','veritas','admin'];
 window.showSection = function(key) {
   ALL_SECTIONS.forEach(k => {
     document.getElementById('sec-'+k)?.classList.remove('active');
@@ -834,7 +904,8 @@ window.showSection = function(key) {
     }
   }
   if (key === 'career') loadCareerData();
-  if (key === 'admin') loadClubWriteStatus();
+  if (key === 'veritas') loadVeritasPage();
+  if (key === 'admin') { loadClubWriteStatus(); loadVeritasEditorList(); }
   if (key === 'club') {
     document.getElementById('club-list-area').style.display = 'block';
     document.getElementById('club-board-area').classList.remove('active');
@@ -851,7 +922,22 @@ const curMonth = today.getMonth(); // 학생은 항상 현재 달
 
 let selectedDate    = null;
 let selectedTeacher = null;
+let selectedLunch   = null;
 let openedSlots     = {}; // { 'YYYY-MM-DD': [{teacherEmail, teacherName, categories}] }
+
+window.toggleAllCategories = function(cb) {
+  document.querySelectorAll('#t-category-box input[type=checkbox]:not([value=모두])').forEach(c => c.checked = cb.checked);
+};
+
+window.selectLunch = function(time) {
+  selectedLunch = time;
+  document.querySelectorAll('.lunch-option').forEach(el => el.classList.remove('chosen'));
+  document.getElementById(`lunch-${time}`).classList.add('chosen');
+  const desc = time === '4A'
+    ? '4A(11:30~12:20) 시간에 선생님과 식사하며 상담합니다'
+    : '4B(12:30~13:20) 시간에 선생님과 식사하며 상담합니다';
+  document.getElementById('lunch-desc').textContent = desc;
+};
 
 const monthNames = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
 
@@ -904,6 +990,7 @@ function renderStudentCal() {
 function selectDate(d, key) {
   selectedDate    = d;
   selectedTeacher = null;
+  selectedLunch   = null;
   renderStudentCal();
   updatePanel(key);
 }
@@ -922,7 +1009,17 @@ function updatePanel(key) {
       <span class="t-field-badge">${cats}</span>
     </div>`;
   });
-  html += `</div><div class="field"><label>상담 희망 내용</label>
+  html += `</div>
+    <div class="field"><label>점심 시간 선택</label>
+      <div class="t-option lunch-option" id="lunch-4A" onclick="selectLunch('4A')">
+        <span>4A</span><span class="t-field-badge">11:30 ~ 12:20</span>
+      </div>
+      <div class="t-option lunch-option" id="lunch-4B" onclick="selectLunch('4B')">
+        <span>4B</span><span class="t-field-badge">12:30 ~ 13:20</span>
+      </div>
+      <div id="lunch-desc" style="font-size:12px;color:var(--text-muted);margin-top:6px;"></div>
+    </div>
+    <div class="field"><label>상담 희망 내용</label>
     <textarea id="consult-memo" placeholder="상담받고 싶은 내용을 간략히 적어주세요"></textarea></div>
     <button class="btn-submit" onclick="submitBooking('${key}')">예약 신청하기</button>`;
   pc.innerHTML = html;
@@ -937,6 +1034,7 @@ window.selectTeacher = function(i, key) {
 window.submitBooking = async function(key) {
   if (!currentUser) { showToast('로그인이 필요합니다.'); return; }
   if (selectedTeacher === null) { showToast('선생님을 선택해주세요.'); return; }
+  if (!selectedLunch) { showToast('점심 시간(4A/4B)을 선택해주세요.'); return; }
   const memo = (document.getElementById('consult-memo')?.value || '').trim();
   if (!memo) { showToast('상담 내용을 입력해주세요.'); return; }
   const slot = (openedSlots[key]||[])[selectedTeacher];
@@ -965,6 +1063,7 @@ window.submitBooking = async function(key) {
       teacherName:  slot.teacherName,
       date:         `${curYear}년 ${curMonth+1}월 ${selectedDate}일`,
       dateKey:      key,
+      lunchTime:    selectedLunch,
       memo,
       status:       '예약 대기',
       createdAt:    Timestamp.now(),
@@ -997,9 +1096,20 @@ async function loadMyBookings() {
                         : data.status === '반려'      ? 'status-rejected'
                         : 'status-pending';
       const el = document.createElement('div'); el.className = 'booking-item';
-      el.innerHTML = `<div class="booking-item-info"><strong>${data.date}</strong> &nbsp;·&nbsp; ${data.teacherName}<br>
-        <span style="color:var(--text-muted);font-size:12px;">${data.memo}</span></div>
-        <span class="status-badge ${badgeClass}">${data.status}</span>`;
+      const lunchStr = data.lunchTime ? ` · ${data.lunchTime}` : '';
+      const confirmedMsg = data.status === '예약 확정'
+        ? `<div style="margin-top:8px;font-size:12px;color:#1B5E20;background:#E8F5E9;padding:8px 10px;border-radius:6px;line-height:1.7;">
+            📅 ${data.date} ${data.lunchTime||''} 시간에 상담 신청이 최종 승인되었습니다.<br>
+            ${data.teacherName}과 구글챗으로 세부 약속시간을 정해주세요.
+           </div>` : '';
+      el.innerHTML = `<div style="width:100%;">
+        <div class="booking-item-info" style="display:flex;justify-content:space-between;align-items:center;">
+          <div><strong>${data.date}${lunchStr}</strong> &nbsp;·&nbsp; ${data.teacherName}<br>
+          <span style="color:var(--text-muted);font-size:12px;">${data.memo}</span></div>
+          <span class="status-badge ${badgeClass}">${data.status}</span>
+        </div>
+        ${confirmedMsg}
+      </div>`;
       list.appendChild(el);
     });
   } catch(e) { list.innerHTML = '<div class="no-date-msg" style="text-align:left;">불러오기 실패.</div>'; }
@@ -1077,8 +1187,11 @@ function showSlotPanel(key) {
   const checks   = box.querySelectorAll('input[type=checkbox]');
   const daySlots = allSlotsCache[key] || [];
   const existing = daySlots.find(s => s.teacherEmail === currentUser?.email);
+  const savedCats = existing ? (existing.categories || []) : [];
+  const isAll = savedCats.includes('모두');
   checks.forEach(cb => {
-    cb.checked = existing ? (existing.categories || []).includes(cb.value) : false;
+    if (cb.value === '모두') cb.checked = isAll;
+    else cb.checked = isAll || savedCats.includes(cb.value);
   });
 }
 
@@ -1099,7 +1212,10 @@ window.changeTeacherMonth = function(dir) {
 window.saveTeacherSlot = async function() {
   if (!tSelectedDate || !currentUser) return;
   const key  = `${tCurYear}-${String(tCurMonth+1).padStart(2,'0')}-${String(tSelectedDate).padStart(2,'0')}`;
-  const cats = [...document.querySelectorAll('#t-category-box input:checked')].map(c => c.value);
+  const allChecked = document.querySelector('#t-category-box input[value=모두]')?.checked;
+  const cats = allChecked
+    ? ['모두']
+    : [...document.querySelectorAll('#t-category-box input:checked:not([value=모두])')].map(c => c.value);
   if (!cats.length) { showToast('카테고리를 하나 이상 선택해주세요.'); return; }
   const myName   = TEACHERS[currentUser.email] || currentUser.displayName || '선생님';
   const slotDoc  = doc(db, 'teacherSlots', key);
@@ -1161,6 +1277,7 @@ function subscribeTeacherApprovals() {
           <span class="status-badge ${badgeClass}">${data.status}</span>
         </div>
         <div style="font-size:13px;">신청 학생: <strong>${data.userName}</strong> (${data.email})</div>
+        ${data.lunchTime ? `<div style="font-size:12px;color:var(--text-muted);margin-top:2px;">점심 시간: <strong>${data.lunchTime}</strong></div>` : ''}
         <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">상담 내용: ${data.memo}</div>
         ${data.status === '예약 대기' ? `
         <div class="approval-actions">
@@ -1694,6 +1811,170 @@ window.uploadClubExcel = async function(input) {
     loadClubs();
   } catch(e) { st.className = 'upload-status error'; st.textContent = '❌ 오류: ' + e.message; }
   input.value = '';
+};
+
+/* ══════════════════════════════════════
+   VERITAS CNSA
+══════════════════════════════════════ */
+let isVeritasEditor  = false;
+let veritasIssues    = [];
+let veritasReupload  = false; // true면 재업로드 모드
+
+async function initVeritasEditor() {
+  if (currentRole === 'admin') { isVeritasEditor = true; return; }
+  try {
+    const snap = await getDoc(doc(db,'settings','veritasEditors'));
+    if (snap.exists()) {
+      isVeritasEditor = (snap.data().emails||[]).includes(currentUser.email);
+    }
+  } catch(e) { isVeritasEditor = false; }
+}
+
+async function loadVeritasPage() {
+  await initVeritasEditor();
+
+  // 편집자 버튼 표시
+  document.getElementById('veritas-upload-btn').style.display   = isVeritasEditor ? 'inline-block' : 'none';
+
+  // 모든 호수 로드
+  const snap = await getDocs(query(collection(db,'veritasIssues'), orderBy('year','desc'), orderBy('month','desc')));
+  veritasIssues = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+  const sel = document.getElementById('veritas-issue-select');
+  sel.innerHTML = '';
+  if (veritasIssues.length === 0) {
+    document.getElementById('veritas-empty').style.display       = 'block';
+    document.getElementById('veritas-viewer-wrap').style.display = 'none';
+    sel.style.display = 'none';
+    return;
+  }
+  document.getElementById('veritas-empty').style.display = 'none';
+  sel.style.display = '';
+  veritasIssues.forEach(issue => {
+    const opt = document.createElement('option');
+    opt.value = issue.id;
+    opt.textContent = `${issue.year}년 ${issue.month}월호`;
+    sel.appendChild(opt);
+  });
+  selectVeritasIssue(veritasIssues[0].id);
+}
+
+window.selectVeritasIssue = function(id) {
+  const issue = veritasIssues.find(i => i.id === id);
+  if (!issue) return;
+  document.getElementById('veritas-issue-label').textContent = `${issue.year}년 ${issue.month}월호`;
+  const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(issue.url)}&embedded=true`;
+  document.getElementById('veritas-iframe').src              = viewerUrl;
+  document.getElementById('veritas-viewer-wrap').style.display = 'block';
+  // 편집자 재업로드/삭제 버튼
+  document.getElementById('veritas-reupload-btn').style.display = isVeritasEditor ? 'inline-block' : 'none';
+  document.getElementById('veritas-delete-btn').style.display   = isVeritasEditor ? 'inline-block' : 'none';
+};
+
+window.openVeritasUpload = function(isReupload) {
+  veritasReupload = isReupload;
+  // 연도 드롭다운 채우기
+  const ySel = document.getElementById('veritas-sel-year');
+  ySel.innerHTML = '';
+  const thisYear = new Date().getFullYear();
+  for (let y = thisYear; y >= thisYear - 3; y--) {
+    const opt = document.createElement('option'); opt.value = y; opt.textContent = `${y}년`;
+    ySel.appendChild(opt);
+  }
+  // 현재 선택된 호수로 기본값 세팅
+  if (isReupload) {
+    const selId = document.getElementById('veritas-issue-select').value;
+    const cur   = veritasIssues.find(i => i.id === selId);
+    if (cur) { ySel.value = cur.year; document.getElementById('veritas-sel-month').value = cur.month; }
+  } else {
+    ySel.value = thisYear;
+    document.getElementById('veritas-sel-month').value = new Date().getMonth() + 1;
+  }
+  document.getElementById('veritas-file-input').value = '';
+  document.getElementById('veritas-upload-modal').classList.add('open');
+};
+
+window.closeVeritasUpload = function() {
+  document.getElementById('veritas-upload-modal').classList.remove('open');
+};
+
+window.handleVeritasUpload = async function(input) {
+  if (!input.files[0]) return;
+  const file = input.files[0];
+  if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+    showToast('PDF 파일만 업로드할 수 있습니다.'); input.value = ''; return;
+  }
+  const year  = parseInt(document.getElementById('veritas-sel-year').value);
+  const month = parseInt(document.getElementById('veritas-sel-month').value);
+  closeVeritasUpload();
+  showToast('업로드 중...');
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', 'ccg_preset');
+    formData.append('folder', `ccg/veritas`);
+    const res  = await fetch('https://api.cloudinary.com/v1_1/dl0d1gakg/raw/upload', { method:'POST', body:formData });
+    const json = await res.json();
+    if (!json.secure_url) throw new Error(json.error?.message || '업로드 실패');
+    const docId = `${year}-${String(month).padStart(2,'0')}`;
+    await setDoc(doc(db,'veritasIssues',docId), {
+      year, month, url: json.secure_url,
+      uploadedBy: currentUser.email, uploadedAt: Timestamp.now(),
+    });
+    showToast(`${year}년 ${month}월호 업로드 완료!`);
+    await loadVeritasPage();
+    document.getElementById('veritas-issue-select').value = docId;
+    selectVeritasIssue(docId);
+  } catch(e) { showToast('업로드 실패: ' + e.message); }
+};
+
+window.deleteVeritasIssue = async function() {
+  const selId = document.getElementById('veritas-issue-select').value;
+  const issue = veritasIssues.find(i => i.id === selId);
+  if (!issue) return;
+  if (!confirm(`${issue.year}년 ${issue.month}월호를 삭제하시겠습니까?`)) return;
+  await deleteDoc(doc(db,'veritasIssues', selId));
+  showToast('삭제되었습니다.');
+  await loadVeritasPage();
+};
+
+/* VERITAS 편집자 관리 (관리자) */
+async function loadVeritasEditorList() {
+  const snap = await getDoc(doc(db,'settings','veritasEditors'));
+  const emails = snap.exists() ? (snap.data().emails||[]) : [];
+  const el = document.getElementById('veritas-editor-list');
+  if (!el) return;
+  el.innerHTML = emails.length ? '' : '<span style="font-size:12px;color:var(--text-muted);">등록된 편집자가 없습니다.</span>';
+  emails.forEach(email => {
+    const tag = document.createElement('span');
+    tag.style.cssText = 'display:inline-flex;align-items:center;gap:4px;background:var(--accent-light);color:#7A5E00;font-size:12px;padding:3px 8px;border-radius:20px;';
+    tag.innerHTML = `${email} <button onclick="removeVeritasEditor('${email}')" style="background:none;border:none;cursor:pointer;color:#7A5E00;font-size:14px;line-height:1;padding:0;">×</button>`;
+    el.appendChild(tag);
+  });
+}
+
+window.addVeritasEditors = async function() {
+  const input  = document.getElementById('veritas-editor-input');
+  const raw    = input.value.trim();
+  if (!raw) return;
+  const newEmails = raw.split(',').map(e => e.trim().toLowerCase()).filter(e => e.includes('@'));
+  if (!newEmails.length) { showToast('올바른 이메일을 입력해주세요.'); return; }
+  const snap   = await getDoc(doc(db,'settings','veritasEditors'));
+  const cur    = snap.exists() ? (snap.data().emails||[]) : [];
+  const merged = [...new Set([...cur, ...newEmails])];
+  await setDoc(doc(db,'settings','veritasEditors'), { emails: merged });
+  input.value = '';
+  showToast(`${newEmails.length}명 추가되었습니다.`);
+  loadVeritasEditorList();
+};
+
+window.removeVeritasEditor = async function(email) {
+  const snap  = await getDoc(doc(db,'settings','veritasEditors'));
+  const cur   = snap.exists() ? (snap.data().emails||[]) : [];
+  const after = cur.filter(e => e !== email);
+  await setDoc(doc(db,'settings','veritasEditors'), { emails: after });
+  showToast(`${email} 삭제됨`);
+  loadVeritasEditorList();
 };
 
 /* ══════════════════════════════════════

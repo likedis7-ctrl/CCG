@@ -1,6 +1,14 @@
 {
   "indexes": [
     {
+      "collectionGroup": "veritasIssues",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "year",  "order": "DESCENDING" },
+        { "fieldPath": "month", "order": "DESCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "clubArticles",
       "queryScope": "COLLECTION",
       "fields": [
