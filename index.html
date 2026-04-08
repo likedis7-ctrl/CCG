@@ -501,8 +501,16 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
   <div class="section" id="sec-club">
     <div id="club-list-area">
       <div class="section-header">
-        <div class="section-title">동아리활동</div>
-        <div class="section-sub">동아리 카드를 클릭하면 활동 게시판을 볼 수 있어요</div>
+        <div>
+          <div class="section-title">동아리활동</div>
+          <div class="section-sub">동아리 카드를 클릭하면 활동 게시판을 볼 수 있어요</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-size:12px;color:var(--text-muted);">학년도</span>
+          <select id="club-year-select" onchange="changeYear(this.value)"
+            style="border:0.5px solid var(--border);border-radius:6px;padding:4px 8px;font-size:13px;font-family:var(--font-body);background:var(--white);color:var(--navy);cursor:pointer;outline:none;">
+          </select>
+        </div>
       </div>
       <!-- 최근 활동 자랑 2개 -->
       <div class="article-preview-section" id="article-preview-section" style="display:none;">
@@ -712,22 +720,18 @@ let currentUser = null;
 let currentRole = 'student'; // student | teacher | admin
 let siteYear    = new Date().getFullYear();
 
-function initYearSelect() {
-  const sel = document.getElementById('year-select');
-  sel.innerHTML = '';
-  const thisYear = new Date().getFullYear();
-  for (let y = thisYear; y >= thisYear - 4; y--) {
-    const opt = document.createElement('option');
-    opt.value = y; opt.textContent = `${y}년`;
-    if (y === siteYear) opt.selected = true;
-    sel.appendChild(opt);
-  }
+async function loadClubYears() {
+  const snap  = await getDocs(collection(db, 'clubs'));
+  const years = [...new Set(snap.docs.map(d => d.data().year).filter(Boolean))].sort((a,b) => b-a);
+  if (!years.length) years.push(new Date().getFullYear());
+  if (!years.includes(siteYear)) siteYear = years[0];
+  const sel = document.getElementById('club-year-select');
+  sel.innerHTML = years.map(y => `<option value="${y}"${y===siteYear?' selected':''}>${y}년</option>`).join('');
 }
 
 window.changeYear = function(y) {
   siteYear = parseInt(y);
   loadClubs();
-  loadCareerData();
 };
 
 /* 실시간 구독 핸들 */
@@ -771,7 +775,6 @@ onAuthStateChanged(auth, async (user) => {
     mainNav.style.display  = 'block';
     mainCont.style.display = 'block';
 
-    initYearSelect();
     showSection('intro');
     loadCareerData();
     loadClubs();
@@ -822,6 +825,7 @@ window.showSection = function(key) {
   if (key === 'club') {
     document.getElementById('club-list-area').style.display = 'block';
     document.getElementById('club-board-area').classList.remove('active');
+    loadClubYears().then(() => loadClubs());
   }
 };
 
