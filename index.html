@@ -1233,7 +1233,11 @@ async function loadRecentArticles() {
   try {
     const q    = query(collection(db,'clubArticles'), orderBy('createdAt','desc'), limit(2));
     const snap = await getDocs(q);
-    if (snap.empty) return;
+    if (snap.empty) {
+      document.getElementById('article-preview-section').style.display = 'none';
+      document.getElementById('article-preview-grid').innerHTML = '';
+      return;
+    }
     const section = document.getElementById('article-preview-section');
     const pgrid   = document.getElementById('article-preview-grid');
     pgrid.innerHTML = '';
@@ -1493,7 +1497,7 @@ window.deleteCurrentArticle = async function() {
     showToast('삭제되었습니다.');
     closeArticleView();
     if (currentClub) await loadClubArticles(currentClub);
-    loadRecentArticles();
+    await loadRecentArticles();
   } catch(e) { showToast('삭제 실패: ' + e.message); }
 };
 
