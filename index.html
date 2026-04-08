@@ -1334,7 +1334,7 @@ async function loadPdfReportCards(club) {
     card.innerHTML = `<div class="pdf-report-label">${t.label}</div>
       <div class="pdf-report-status">${submitted ? '✅' : '❌'}</div>
       <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">${submitted ? '제출 완료' : '미제출'}</div>
-      ${submitted ? `<button class="btn-view-pdf" onclick="openPdfView('${reports[t.key].url}','${t.label}')">보기</button>` : ''}`;
+      ${submitted ? `<a class="btn-view-pdf" href="${reports[t.key].url}" target="_blank" download>다운로드</a>` : ''}`;
     container.appendChild(card);
   });
 }
