@@ -640,7 +640,10 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
 <div class="full-modal" id="pdf-view-modal">
   <div class="full-modal-header">
     <span class="full-modal-title" id="pdf-view-title">보고서 보기</span>
-    <button class="full-modal-close" onclick="closePdfView()">✕ 닫기</button>
+    <div style="display:flex;gap:8px;">
+      <button class="full-modal-close" id="pdf-open-btn">↗ 새 탭에서 열기</button>
+      <button class="full-modal-close" onclick="closePdfView()">✕ 닫기</button>
+    </div>
   </div>
   <div class="full-modal-body" style="padding:1rem;">
     <iframe id="pdf-iframe" class="pdf-iframe-wrap" src=""></iframe>
@@ -1376,8 +1379,10 @@ window.handlePdfUpload = async function(input) {
 
 /* PDF 보기 */
 window.openPdfView = function(url, title) {
-  document.getElementById('pdf-view-title').textContent  = title;
-  document.getElementById('pdf-iframe').src              = url;
+  document.getElementById('pdf-view-title').textContent = title;
+  const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`;
+  document.getElementById('pdf-iframe').src = viewerUrl;
+  document.getElementById('pdf-open-btn').onclick = () => window.open(url, '_blank');
   document.getElementById('pdf-view-modal').classList.add('open');
 };
 window.closePdfView = function() {
