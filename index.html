@@ -1308,8 +1308,8 @@ async function openClubBoard(club) {
 
 function isAuthorizedForClub(club) {
   if (!currentUser) return false;
-  return currentRole === 'teacher' || currentRole === 'admin'
-    || (club.leaderEmail && currentUser.email === club.leaderEmail);
+  if (currentRole === 'teacher' || currentRole === 'admin') return true;
+  return club.year === siteYear && club.leaderEmail && currentUser.email === club.leaderEmail;
 }
 
 async function loadPdfReportCards(club) {
