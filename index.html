@@ -1341,23 +1341,34 @@ window.uploadClubPdf = function(type) {
 };
 window.handlePdfUpload = async function(input) {
   if (!input.files[0] || !currentClub || !_pendingPdfType) return;
-  const file    = input.files[0];
+  const file = input.files[0];
+  if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+    showToast('PDF 파일만 업로드할 수 있습니다.');
+    input.value = '';
+    return;
+  }
   const type    = _pendingPdfType;
   _pendingPdfType = null;
   input.value   = '';
   showToast('업로드 중...');
   try {
-    const storageRef = ref(storage, `clubPDFs/${currentClub.id}/${type}.pdf`);
-    const snap       = await uploadBytes(storageRef, file);
-    const url        = await getDownloadURL(snap.ref);
-    const reportDoc  = doc(db, 'clubReports', currentClub.id);
-    const existing   = await getDoc(reportDoc);
-    const data       = existing.exists() ? existing.data() : {};
-    data[type]       = { url, uploadedAt: Timestamp.now() };
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', 'ccg_preset');
+    formData.append('public_id', `clubPDFs/${currentClub.id}/${type}`);
+    const res  = await fetch('https://api.cloudinary.com/v1_1/dl0d1gakg/raw/upload', {
+      method: 'POST', body: formData,
+    });
+    const json = await res.json();
+    if (!json.secure_url) throw new Error(json.error?.message || '업로드 실패');
+    const url      = json.secure_url;
+    const reportDoc = doc(db, 'clubReports', currentClub.id);
+    const existing  = await getDoc(reportDoc);
+    const data      = existing.exists() ? existing.data() : {};
+    data[type]      = { url, uploadedAt: Timestamp.now() };
     await setDoc(reportDoc, data);
     showToast('업로드 완료!');
     await loadPdfReportCards(currentClub);
-    // 클럽 목록도 리프레시
     loadClubs();
   } catch(e) { showToast('업로드 실패: ' + e.message); }
 };
