@@ -554,7 +554,7 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
       </div>
       <div class="admin-section">
         <div class="admin-section-title">동아리 목록 관리</div>
-        <div class="admin-desc">동아리 카드 목록을 갱신합니다.<br><strong>필수 컬럼:</strong> 동아리명, 기장 이름, 기장 이메일, 주요활동, 교실, 지도교사, 비고</div>
+        <div class="admin-desc">동아리 카드 목록을 갱신합니다.<br><strong>컬럼 순서:</strong> 동아리명, 분류, 지도교사1, 지도교사2, 지도교사3, 배정인원, 3학년학생, 교실1, 교실2, 교실3, 기장 성명, 기장 이메일</div>
         <div class="admin-actions">
           <button class="btn-download" onclick="downloadClubTemplate()">⬇ 양식 다운로드</button>
           <button class="btn-upload"   onclick="document.getElementById('club-file-input').click()">⬆ 엑셀 업로드</button>
@@ -1211,9 +1211,15 @@ function renderClubCard(c, reports) {
   const annualDone = !!(reports.annual?.url);
   const midDone    = !!(reports.mid?.url);
   const finalDone  = !!(reports.final?.url);
+  const roomStr    = c.rooms    || c.room    || '-';
+  const teacherStr = c.teachers || c.teacher || '-';
   el.innerHTML = `<div class="club-name">${c.name}</div>
-    <div class="club-meta">기장: ${c.leader} &nbsp;|&nbsp; 교실: ${c.room}${c.teacher ? ` &nbsp;|&nbsp; 지도교사: ${c.teacher}` : ''}</div>
-    <div class="club-activity">주요활동: ${c.activity}</div>
+    <div class="club-meta">
+      ${c.category ? `<span style="font-size:11px;background:var(--accent-light);color:#7A5E00;padding:1px 6px;border-radius:4px;margin-right:6px;">${c.category}</span>` : ''}
+      기장: ${c.leader||'-'} &nbsp;|&nbsp; 교실: ${roomStr}
+      ${c.totalMembers ? ` &nbsp;|&nbsp; 인원: ${c.totalMembers}명` : ''}
+    </div>
+    <div class="club-activity">지도교사: ${teacherStr}</div>
     <div class="submit-badges">
       <span class="submit-badge ${annualDone?'done':'pending'}">${annualDone?'✅':'❌'} 연간계획서</span>
       <span class="submit-badge ${midDone?'done':'pending'}">${midDone?'✅':'❌'} 중간보고서</span>
@@ -1557,8 +1563,8 @@ window.downloadClubTemplate = function() {
   const ws  = XLSX.utils.aoa_to_sheet([
     ['동아리 목록 입력 양식'],
     ['아래 4번 행부터 데이터를 입력하세요. 기장 이메일은 @cnsa.hs.kr 학생 계정이어야 합니다.'],
-    ['동아리명', '기장 이름', '기장 이메일', '주요활동', '교실', '지도교사', '비고'],
-    ['코딩부', '김코딩', 'coding@cnsa.hs.kr', '앱 개발 및 알고리즘 대회 준비', '3층 컴퓨터실', '이현우', ''],
+    ['동아리명', '분류', '지도교사1', '지도교사2', '지도교사3', '배정인원', '3학년학생', '교실1', '교실2', '교실3', '기장 성명', '기장 이메일'],
+    ['코딩부', '교과연계(진로기반)', '이대석', '', '', '30', '10', 'S108', '', '', '김코딩', 'coding@cnsa.hs.kr'],
   ]);
   XLSX.utils.book_append_sheet(wb, ws, '양식');
   XLSX.writeFile(wb, '동아리_목록_양식.xlsx');
@@ -1578,16 +1584,26 @@ window.uploadClubExcel = async function(input) {
       const r = rows[i];
       if (!r[0]) continue;
       const name = String(r[0]).trim();
-      const id   = name; // 동아리명을 ID로 사용
-      await setDoc(doc(db,'clubs',id), {
+      // 교실: 빈 값 제거 후 합치기
+      const rooms    = [r[7], r[8], r[9]].map(v => String(v||'').trim()).filter(Boolean);
+      // 지도교사: 빈 값 제거 후 합치기
+      const teachers = [r[2], r[3], r[4]].map(v => String(v||'').trim()).filter(Boolean);
+      await setDoc(doc(db,'clubs', name), {
         name,
-        leader:      String(r[1]||''),
-        leaderEmail: String(r[2]||'').trim().toLowerCase(),
-        activity:    String(r[3]||''),
-        room:        String(r[4]||''),
-        teacher:     String(r[5]||''),
-        note:        String(r[6]||''),
-        updatedAt:   Timestamp.now(),
+        category:     String(r[1]||'').trim(),
+        teacher1:     String(r[2]||'').trim(),
+        teacher2:     String(r[3]||'').trim(),
+        teacher3:     String(r[4]||'').trim(),
+        teachers:     teachers.join(', '),
+        totalMembers: Number(r[5])||0,
+        seniorMembers:Number(r[6])||0,
+        room1:        String(r[7]||'').trim(),
+        room2:        String(r[8]||'').trim(),
+        room3:        String(r[9]||'').trim(),
+        rooms:        rooms.join(', '),
+        leader:       String(r[10]||'').trim(),
+        leaderEmail:  String(r[11]||'').trim().toLowerCase(),
+        updatedAt:    Timestamp.now(),
       });
       count++;
     }
