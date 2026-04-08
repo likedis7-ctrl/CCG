@@ -452,7 +452,9 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
             </div>
             <div class="cal-grid" id="t-cal-grid"></div>
             <div class="legend">
-              <div class="legend-open"></div><span>내 상담 열림</span>
+              <div class="legend-open"></div><span>내 상담</span>
+              &nbsp;&nbsp;
+              <div class="legend-dot"></div><span>타 선생님 상담</span>
             </div>
           </div>
           <div class="slot-setting-panel">
@@ -627,6 +629,10 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
     <h1 id="article-view-title" style="font-family:var(--font-heading);font-size:26px;color:var(--navy);margin-bottom:1rem;"></h1>
     <div class="article-meta" id="article-view-meta"></div>
     <div class="ck-content" id="article-view-content"></div>
+  </div>
+  <div class="full-modal-footer" id="article-view-footer" style="display:none;">
+    <button class="btn-slot-del" style="width:auto;padding:0.6rem 1.5rem;" onclick="deleteCurrentArticle()">삭제</button>
+    <button class="btn-slot-save" style="width:auto;padding:0.6rem 1.5rem;" onclick="editCurrentArticle()">수정</button>
   </div>
 </div>
 
@@ -991,13 +997,20 @@ window.renderTeacherCal = function() {
   for (let d = 1; d <= dim; d++) {
     const el  = document.createElement('div'); el.className = 'cal-day'; el.textContent = d;
     const key = `${tCurYear}-${String(tCurMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const daySlots = allSlotsCache[key] || [];
-    const mySlot   = daySlots.find(s => s.teacherEmail === currentUser?.email);
+    const daySlots   = allSlotsCache[key] || [];
+    const mySlot     = daySlots.find(s => s.teacherEmail === currentUser?.email);
+    const otherSlots = daySlots.filter(s => s.teacherEmail !== currentUser?.email);
     if (mySlot) {
       el.classList.add('opened');
+      const myShortName = (TEACHERS[currentUser?.email] || currentUser?.displayName || '나').replace(' 선생님', '');
       const badge = document.createElement('div'); badge.className = 'teacher-badge my-open';
-      badge.textContent = '내 상담 열림'; el.appendChild(badge);
+      badge.textContent = myShortName; el.appendChild(badge);
     }
+    otherSlots.forEach(s => {
+      if (!el.classList.contains('opened')) el.classList.add('has-slot');
+      const ob = document.createElement('div'); ob.className = 'teacher-badge';
+      ob.textContent = s.teacherName.replace(' 선생님', ''); el.appendChild(ob);
+    });
     if (tSelectedDate === d) el.classList.add('selected');
     el.onclick = () => { tSelectedDate = d; renderTeacherCal(); showSlotPanel(key); };
     grid.appendChild(el);
@@ -1151,8 +1164,10 @@ window.loadCareerData = async function() {
 /* ══════════════════════════════════════
    동아리 - 목록
 ══════════════════════════════════════ */
-let currentClub = null;
+let currentClub    = null;
 let pendingPdfType = null;
+let currentArticle = null;  // 현재 보고 있는 글 (docId 포함)
+let _editingArticleId = null; // 수정 중인 글 ID
 
 window.loadClubs = async function() {
   const grid = document.getElementById('club-grid');
@@ -1208,7 +1223,7 @@ async function loadRecentArticles() {
     const pgrid   = document.getElementById('article-preview-grid');
     pgrid.innerHTML = '';
     snap.forEach(d => {
-      const a  = d.data();
+      const a  = { ...d.data(), _docId: d.id };
       const el = document.createElement('div'); el.className = 'article-preview-card';
       const preview = stripHtml(a.content || '').substring(0, 150);
       const dateStr  = a.createdAt ? formatDate(a.createdAt.toDate()) : '';
@@ -1292,7 +1307,7 @@ async function loadClubArticles(club) {
     }
     container.innerHTML = '';
     snap.forEach(d => {
-      const a       = d.data();
+      const a       = { ...d.data(), _docId: d.id };
       const preview = stripHtml(a.content || '').substring(0, 200);
       const dateStr  = a.createdAt ? formatDate(a.createdAt.toDate()) : '';
       const el = document.createElement('div'); el.className = 'article-item';
@@ -1359,6 +1374,9 @@ window.closePdfView = function() {
 let ckEditorInstance = null;
 
 window.openArticleEditor = async function() {
+  _editingArticleId = null;
+  document.querySelector('#editor-modal .full-modal-title').textContent = '활동 자랑 작성';
+  document.querySelector('#editor-modal .full-modal-footer .btn-slot-save').textContent = '게시하기';
   document.getElementById('article-title-input').value = '';
   document.getElementById('editor-modal').classList.add('open');
   if (ckEditorInstance) { await ckEditorInstance.destroy(); ckEditorInstance = null; }
@@ -1373,6 +1391,7 @@ window.openArticleEditor = async function() {
 };
 
 window.closeArticleEditor = async function() {
+  _editingArticleId = null;
   document.getElementById('editor-modal').classList.remove('open');
   if (ckEditorInstance) { await ckEditorInstance.destroy(); ckEditorInstance = null; }
 };
@@ -1389,17 +1408,26 @@ window.submitArticle = async function() {
   const thumbnailUrl = imgMatch ? imgMatch[1] : null;
 
   try {
-    await addDoc(collection(db,'clubArticles'), {
-      clubId:      currentClub.id,
-      clubName:    currentClub.name,
-      title,
-      content,
-      authorEmail: currentUser.email,
-      authorName:  currentUser.displayName || currentUser.email,
-      createdAt:   Timestamp.now(),
-      thumbnailUrl,
-    });
-    showToast('게시글이 등록되었습니다!');
+    if (_editingArticleId) {
+      // 수정 모드
+      await updateDoc(doc(db, 'clubArticles', _editingArticleId), {
+        title, content, thumbnailUrl, updatedAt: Timestamp.now(),
+      });
+      showToast('수정되었습니다!');
+    } else {
+      // 신규 작성
+      await addDoc(collection(db,'clubArticles'), {
+        clubId:      currentClub.id,
+        clubName:    currentClub.name,
+        title,
+        content,
+        authorEmail: currentUser.email,
+        authorName:  currentUser.displayName || currentUser.email,
+        createdAt:   Timestamp.now(),
+        thumbnailUrl,
+      });
+      showToast('게시글이 등록되었습니다!');
+    }
     await closeArticleEditor();
     await loadClubArticles(currentClub);
     loadRecentArticles(); // 메인 목록 갱신
@@ -1408,15 +1436,58 @@ window.submitArticle = async function() {
 
 /* 글 보기 */
 function openArticleView(article) {
+  currentArticle = article;
   document.getElementById('article-view-club-name').textContent = article.clubName || '';
   document.getElementById('article-view-title').textContent     = article.title    || '(제목 없음)';
   const dateStr = article.createdAt ? formatDate(article.createdAt.toDate ? article.createdAt.toDate() : new Date(article.createdAt)) : '';
   document.getElementById('article-view-meta').textContent      = `${article.authorName || ''} · ${dateStr}`;
   document.getElementById('article-view-content').innerHTML     = article.content  || '';
+
+  // 수정/삭제 버튼 권한 체크 (작성자 본인 또는 관리자)
+  const canEdit = currentUser && (
+    currentRole === 'admin' ||
+    currentUser.email === article.authorEmail
+  );
+  document.getElementById('article-view-footer').style.display = canEdit ? 'flex' : 'none';
+
   document.getElementById('article-view-modal').classList.add('open');
 }
 window.closeArticleView = function() {
   document.getElementById('article-view-modal').classList.remove('open');
+  currentArticle = null;
+};
+
+window.deleteCurrentArticle = async function() {
+  if (!currentArticle?._docId) return;
+  if (!confirm('정말 삭제하시겠습니까?')) return;
+  try {
+    await deleteDoc(doc(db, 'clubArticles', currentArticle._docId));
+    showToast('삭제되었습니다.');
+    closeArticleView();
+    if (currentClub) await loadClubArticles(currentClub);
+    loadRecentArticles();
+  } catch(e) { showToast('삭제 실패: ' + e.message); }
+};
+
+window.editCurrentArticle = async function() {
+  if (!currentArticle) return;
+  const article = currentArticle;
+  closeArticleView();
+  _editingArticleId = article._docId;
+  document.querySelector('#editor-modal .full-modal-title').textContent = '활동 자랑 수정';
+  document.querySelector('#editor-modal .full-modal-footer .btn-slot-save').textContent = '수정 완료';
+  document.getElementById('article-title-input').value = article.title || '';
+  document.getElementById('editor-modal').classList.add('open');
+  if (ckEditorInstance) { await ckEditorInstance.destroy(); ckEditorInstance = null; }
+  document.getElementById('ck-editor-wrap').innerHTML = '';
+  try {
+    ckEditorInstance = await ClassicEditor.create(document.getElementById('ck-editor-wrap'), {
+      toolbar: ['heading','|','bold','italic','underline','|','bulletedList','numberedList',
+                'insertTable','|','imageUpload','link','|','undo','redo'],
+      extraPlugins: [UploadAdapterPlugin],
+      initialData: article.content || '',
+    });
+  } catch(e) { showToast('에디터 초기화 실패: ' + e.message); }
 };
 
 /* ══════════════════════════════════════
