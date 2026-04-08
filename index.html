@@ -1579,6 +1579,10 @@ window.uploadClubExcel = async function(input) {
     const wb   = XLSX.read(buf, { type: 'array' });
     const ws   = wb.Sheets[wb.SheetNames[0]];
     const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+    // 기존 동아리 전체 삭제
+    const existingSnap = await getDocs(collection(db,'clubs'));
+    await Promise.all(existingSnap.docs.map(d => deleteDoc(d.ref)));
+
     let count  = 0;
     for (let i = 1; i < rows.length; i++) {
       const r = rows[i];
