@@ -62,6 +62,8 @@ nav { background: var(--navy); position: sticky; top: 0; z-index: 100; border-bo
 .user-name { color: rgba(255,255,255,0.8); font-size: 12px; max-width: 120px; overflow: hidden; text-overflow: ellipsis; }
 .btn-logout { background: none; border: 0.5px solid rgba(255,255,255,0.3); border-radius: 4px; color: rgba(255,255,255,0.6); font-size: 11px; padding: 3px 8px; cursor: pointer; font-family: var(--font-body); transition: all 0.15s; }
 .btn-logout:hover { background: rgba(255,255,255,0.1); color: white; }
+.hamburger { display: none; background: none; border: none; cursor: pointer; padding: 6px 8px; color: white; font-size: 22px; line-height: 1; border-radius: 6px; transition: background 0.15s; }
+.hamburger:hover { background: rgba(255,255,255,0.1); }
 
 /* ── MAIN ── */
 main { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem 3rem; }
@@ -274,6 +276,7 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
 .article-item-title { font-size: 15px; font-weight: 500; color: var(--navy); margin-bottom: 6px; }
 .article-item-meta { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
 .article-item-preview { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+@keyframes spin { to { transform: rotate(360deg); } }
 .like-btn { display:inline-flex; align-items:center; gap:5px; padding:0.45rem 1rem; border:1px solid #e0e0e0; border-radius:20px; background:var(--white); font-size:13px; font-family:var(--font-body); cursor:pointer; transition:all 0.15s; }
 .like-btn:hover { border-color:#e57373; color:#c62828; }
 .like-btn.liked { background:#fff0f0; border-color:#e57373; color:#c62828; font-weight:500; }
@@ -311,16 +314,33 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
 
 /* ── 반응형 ── */
 @media (max-width: 768px) {
+  /* 그리드 */
   .booking-layout, .teacher-schedule-grid, .admin-grid { grid-template-columns: 1fr; }
-  .nav-inner { padding: 0 1rem; flex-direction: column; align-items: flex-start; }
-  .nav-right { width: 100%; justify-content: space-between; flex-wrap: wrap; }
-  .nav-menu { width: 100%; overflow-x: auto; padding-bottom: 5px; }
-  .nav-item { padding: 0.8rem 0.6rem; font-size: 12px; }
-  .user-info { padding-left: 0; border-left: none; width: 100%; justify-content: flex-end; }
   .teacher-grid { grid-template-columns: 1fr 1fr; }
   .club-grid { grid-template-columns: 1fr; }
   .article-preview-grid { grid-template-columns: 1fr; }
   .pdf-report-cards { grid-template-columns: 1fr; }
+
+  /* 햄버거 nav */
+  .hamburger { display: block; }
+  .nav-inner { padding: 0 1rem; flex-direction: row; align-items: center; justify-content: space-between; flex-wrap: nowrap; position: relative; }
+  .nav-right { display: contents; }
+  .nav-menu {
+    display: none; position: absolute; top: 100%; left: 0; right: 0;
+    background: var(--navy); flex-direction: column; z-index: 200;
+    border-top: 1px solid rgba(255,255,255,0.1); box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  }
+  .nav-menu.open { display: flex; }
+  .nav-item { padding: 0.9rem 1.25rem; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.06); white-space: normal; }
+  .nav-item.active::after { display: none; }
+  .nav-item.active { background: rgba(200,169,81,0.12); }
+  .user-info { padding-left: 0; border-left: none; }
+  .user-name { display: none; }
+
+  /* 달력 터치 영역 */
+  .cal-day { min-height: 44px; font-size: 14px; border-radius: 6px; }
+  .cal-grid { gap: 3px; }
+  .teacher-badge { font-size: 8px; }
 }
 </style>
 </head>
@@ -357,24 +377,25 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
 <!-- 네비게이션 -->
 <nav id="main-nav" style="display:none;">
   <div class="nav-inner">
-    <div class="logo" onclick="showSection('intro')">
+    <div class="logo" onclick="showSection('intro');closeMobileNav();">
       <div class="logo-badge">진</div>
       <div class="logo-text">진로진학부<div class="logo-sub">CNSA Career &amp; College Guidance</div></div>
     </div>
     <div class="nav-right">
-      <div class="nav-menu">
-        <div class="nav-item active" id="nav-intro"   onclick="showSection('intro')">부서 소개</div>
-        <div class="nav-item"        id="nav-booking" onclick="showSection('booking')">상담 신청</div>
-        <div class="nav-item"        id="nav-career"  onclick="showSection('career')">진로체험시간</div>
-        <div class="nav-item"        id="nav-club"    onclick="showSection('club')">동아리활동</div>
-        <div class="nav-item"        id="nav-veritas" onclick="showSection('veritas')">VERITAS CNSA</div>
-        <div class="nav-item admin-nav" id="nav-admin" onclick="showSection('admin')">⚙ 관리자</div>
-      </div>
       <div class="user-info">
         <div class="user-avatar" id="user-avatar-wrap"><span id="user-initial">?</span></div>
         <span class="user-name" id="user-name-display"></span>
         <button class="btn-logout" onclick="doLogout()">로그아웃</button>
       </div>
+      <button class="hamburger" id="hamburger-btn" onclick="toggleMobileNav()" aria-label="메뉴">☰</button>
+    </div>
+    <div class="nav-menu" id="nav-menu">
+      <div class="nav-item active" id="nav-intro"   onclick="showSection('intro');closeMobileNav();">부서 소개</div>
+      <div class="nav-item"        id="nav-booking" onclick="showSection('booking');closeMobileNav();">상담 신청</div>
+      <div class="nav-item"        id="nav-career"  onclick="showSection('career');closeMobileNav();">진로체험시간</div>
+      <div class="nav-item"        id="nav-club"    onclick="showSection('club');closeMobileNav();">동아리활동</div>
+      <div class="nav-item"        id="nav-veritas" onclick="showSection('veritas');closeMobileNav();">VERITAS CNSA</div>
+      <div class="nav-item admin-nav" id="nav-admin" onclick="showSection('admin');closeMobileNav();">⚙ 관리자</div>
     </div>
   </div>
 </nav>
@@ -570,13 +591,28 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
     </div>
     <div id="veritas-empty"       class="no-data-alert" style="display:none;">아직 업로드된 소식지가 없습니다.</div>
     <div id="veritas-viewer-wrap" style="display:none;">
-      <div id="veritas-issue-label" style="font-size:13px;color:var(--text-muted);margin-bottom:0.5rem;"></div>
-      <iframe id="veritas-iframe" style="width:100%;height:78vh;border:none;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,0.08);" src=""></iframe>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:0.75rem;">
+        <div id="veritas-issue-label" style="font-size:13px;color:var(--text-muted);"></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button id="veritas-dl-btn"  class="btn-download" style="padding:0.35rem 0.9rem;font-size:12px;" onclick="downloadVeritas(1)">⬇ 다운로드</button>
+          <button id="veritas-dl2-btn" class="btn-download" style="padding:0.35rem 0.9rem;font-size:12px;display:none;" onclick="downloadVeritas(2)">⬇ 파트2 다운로드</button>
+          <button class="btn-download" style="padding:0.35rem 0.9rem;font-size:12px;background:rgba(11,36,71,0.07);color:var(--navy-mid);" onclick="retryVeritasIframe()">↺ 뷰어 새로고침</button>
+        </div>
+      </div>
+      <div id="veritas-iframe-loading" style="width:100%;height:78vh;border-radius:10px;background:#f0f4f8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--text-muted);font-size:14px;">
+        <div style="width:36px;height:36px;border:3px solid var(--accent);border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+        PDF 뷰어 로딩 중...
+      </div>
+      <iframe id="veritas-iframe" style="width:100%;height:78vh;border:none;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,0.08);display:none;" src="" onload="onVeritasIframeLoad(1)"></iframe>
       <div id="veritas-continue-wrap" style="display:none;text-align:center;padding:2rem 0;">
         <button onclick="showVeritasPart2()" style="padding:1rem 3rem;background:var(--navy);color:white;border:none;border-radius:12px;font-size:16px;font-family:var(--font-body);font-weight:500;cursor:pointer;box-shadow:0 4px 16px rgba(11,36,71,0.2);transition:background 0.15s;" onmouseover="this.style.background='var(--navy-mid)'" onmouseout="this.style.background='var(--navy)'">📄 계속 보기</button>
       </div>
       <div id="veritas-iframe2-wrap" style="display:none;margin-top:0.5rem;">
-        <iframe id="veritas-iframe2" style="width:100%;height:78vh;border:none;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,0.08);" src=""></iframe>
+        <div id="veritas-iframe2-loading" style="width:100%;height:78vh;border-radius:10px;background:#f0f4f8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--text-muted);font-size:14px;display:none;">
+          <div style="width:36px;height:36px;border:3px solid var(--accent);border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+          PDF 뷰어 로딩 중...
+        </div>
+        <iframe id="veritas-iframe2" style="width:100%;height:78vh;border:none;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,0.08);" src="" onload="onVeritasIframeLoad(2)"></iframe>
       </div>
     </div>
   </div>
@@ -904,6 +940,19 @@ onAuthStateChanged(auth, async (user) => {
    네비게이션
 ══════════════════════════════════════ */
 const ALL_SECTIONS = ['intro','booking','career','club','veritas','admin'];
+
+/* 모바일 햄버거 메뉴 */
+window.toggleMobileNav = function() {
+  const menu = document.getElementById('nav-menu');
+  const btn  = document.getElementById('hamburger-btn');
+  const open = menu.classList.toggle('open');
+  btn.textContent = open ? '✕' : '☰';
+};
+window.closeMobileNav = function() {
+  document.getElementById('nav-menu')?.classList.remove('open');
+  const btn = document.getElementById('hamburger-btn');
+  if (btn) btn.textContent = '☰';
+};
 window.showSection = function(key) {
   ALL_SECTIONS.forEach(k => {
     document.getElementById('sec-'+k)?.classList.remove('active');
@@ -1130,6 +1179,9 @@ async function loadMyBookings() {
             📅 ${data.date} ${data.lunchTime||''} 시간에 상담 신청이 최종 승인되었습니다.<br>
             ${data.teacherName}과 구글챗으로 세부 약속시간을 정해주세요.
            </div>` : '';
+      const cancelBtn = data.status === '대기'
+        ? `<button onclick="cancelMyBooking('${d.id}',event)" style="margin-top:8px;padding:4px 12px;background:none;border:0.5px solid #ccc;border-radius:6px;font-size:12px;color:var(--text-muted);cursor:pointer;font-family:var(--font-body);">예약 취소</button>`
+        : '';
       el.innerHTML = `<div style="width:100%;">
         <div class="booking-item-info" style="display:flex;justify-content:space-between;align-items:center;">
           <div><strong>${data.date}${lunchStr}</strong> &nbsp;·&nbsp; ${data.teacherName}<br>
@@ -1137,11 +1189,22 @@ async function loadMyBookings() {
           <span class="status-badge ${badgeClass}">${data.status}</span>
         </div>
         ${confirmedMsg}
+        ${cancelBtn}
       </div>`;
       list.appendChild(el);
     });
   } catch(e) { list.innerHTML = '<div class="no-date-msg" style="text-align:left;">불러오기 실패.</div>'; }
 }
+
+window.cancelMyBooking = async function(bookingId, e) {
+  e.stopPropagation();
+  if (!confirm('예약을 취소하시겠습니까?')) return;
+  try {
+    await deleteDoc(doc(db, 'bookings', bookingId));
+    showToast('예약이 취소되었습니다.');
+    loadMyBookings();
+  } catch(err) { showToast('취소 실패: ' + err.message); }
+};
 
 /* ══════════════════════════════════════
    선생님 달력 & 일정 설정 (실시간)
@@ -1941,33 +2004,73 @@ async function loadVeritasPage() {
   selectVeritasIssue(veritasIssues[0].id);
 }
 
+let _currentVeritasIssue = null;
+
 window.selectVeritasIssue = function(id) {
   const issue = veritasIssues.find(i => i.id === id);
   if (!issue) return;
+  _currentVeritasIssue = issue;
   document.getElementById('veritas-issue-label').textContent = `${issue.year}년 ${issue.month}월호`;
-  const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(issue.url)}&embedded=true`;
-  document.getElementById('veritas-iframe').src = viewerUrl;
   document.getElementById('veritas-viewer-wrap').style.display = 'block';
+
+  // 파트1 iframe 로딩
+  const iframe1   = document.getElementById('veritas-iframe');
+  const loading1  = document.getElementById('veritas-iframe-loading');
+  const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(issue.url)}&embedded=true&t=${Date.now()}`;
+  loading1.style.display = 'flex';
+  iframe1.style.display  = 'none';
+  iframe1.src = viewerUrl;
+
+  // 다운로드 버튼
+  document.getElementById('veritas-dl-btn').dataset.url = issue.url;
+  document.getElementById('veritas-dl-btn').dataset.name = `VERITAS_${issue.year}_${issue.month}.pdf`;
 
   // 두 번째 PDF 처리
   const continueWrap = document.getElementById('veritas-continue-wrap');
   const iframe2Wrap  = document.getElementById('veritas-iframe2-wrap');
   const iframe2      = document.getElementById('veritas-iframe2');
+  const dl2Btn       = document.getElementById('veritas-dl2-btn');
   if (issue.url2) {
-    const viewerUrl2 = `https://docs.google.com/viewer?url=${encodeURIComponent(issue.url2)}&embedded=true`;
+    const viewerUrl2 = `https://docs.google.com/viewer?url=${encodeURIComponent(issue.url2)}&embedded=true&t=${Date.now()}`;
     iframe2.dataset.src = viewerUrl2;
     iframe2.src = '';
     continueWrap.style.display = 'block';
     iframe2Wrap.style.display  = 'none';
+    dl2Btn.style.display = 'inline-block';
+    dl2Btn.dataset.url  = issue.url2;
+    dl2Btn.dataset.name = `VERITAS_${issue.year}_${issue.month}_part2.pdf`;
   } else {
     continueWrap.style.display = 'none';
     iframe2Wrap.style.display  = 'none';
     iframe2.src = '';
+    dl2Btn.style.display = 'none';
   }
 
   // 편집자 재업로드/삭제 버튼
   document.getElementById('veritas-reupload-btn').style.display = isVeritasEditor ? 'inline-block' : 'none';
   document.getElementById('veritas-delete-btn').style.display   = isVeritasEditor ? 'inline-block' : 'none';
+};
+
+window.onVeritasIframeLoad = function(part) {
+  if (part === 1) {
+    document.getElementById('veritas-iframe-loading').style.display = 'none';
+    document.getElementById('veritas-iframe').style.display = 'block';
+  }
+};
+
+window.retryVeritasIframe = function() {
+  if (!_currentVeritasIssue) return;
+  selectVeritasIssue(_currentVeritasIssue.id);
+};
+
+window.downloadVeritas = function(part) {
+  const btn = document.getElementById(part === 1 ? 'veritas-dl-btn' : 'veritas-dl2-btn');
+  const url  = btn.dataset.url;
+  const name = btn.dataset.name;
+  if (!url) return;
+  const a = document.createElement('a');
+  a.href = url; a.download = name; a.target = '_blank';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
 };
 
 window.showVeritasPart2 = function() {
