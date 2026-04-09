@@ -82,6 +82,12 @@ service cloud.firestore {
         resource.data.authorEmail == request.auth.token.email;
     }
 
+    // 동아리 아티클 좋아요
+    match /clubArticleLikes/{articleId} {
+      allow read: if isCNSA();
+      allow write: if isCNSA();
+    }
+
     // VERITAS CNSA 소식지
     match /veritasIssues/{issueId} {
       allow read: if isCNSA();

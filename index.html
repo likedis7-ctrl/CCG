@@ -274,6 +274,10 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
 .article-item-title { font-size: 15px; font-weight: 500; color: var(--navy); margin-bottom: 6px; }
 .article-item-meta { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
 .article-item-preview { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+.like-btn { display:inline-flex; align-items:center; gap:5px; padding:0.45rem 1rem; border:1px solid #e0e0e0; border-radius:20px; background:var(--white); font-size:13px; font-family:var(--font-body); cursor:pointer; transition:all 0.15s; }
+.like-btn:hover { border-color:#e57373; color:#c62828; }
+.like-btn.liked { background:#fff0f0; border-color:#e57373; color:#c62828; font-weight:500; }
+.like-badge { display:inline-flex; align-items:center; gap:3px; font-size:11px; color:var(--text-muted); }
 
 /* ── 풀스크린 모달 ── */
 .full-modal { position: fixed; inset: 0; background: var(--white); z-index: 3000; display: none; flex-direction: column; }
@@ -734,6 +738,9 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
   <div class="full-modal-body">
     <h1 id="article-view-title" style="font-family:var(--font-heading);font-size:26px;color:var(--navy);margin-bottom:1rem;"></h1>
     <div class="article-meta" id="article-view-meta"></div>
+    <div id="article-view-like-bar" style="margin-bottom:1.25rem;">
+      <button id="article-like-btn" class="like-btn" onclick="toggleArticleLike()">🤍 0</button>
+    </div>
     <div class="ck-content" id="article-view-content"></div>
   </div>
   <div class="full-modal-footer" id="article-view-footer" style="display:none;">
@@ -761,7 +768,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/fireba
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, setDoc, doc, getDoc, query, where,
-         getDocs, orderBy, updateDoc, deleteDoc, Timestamp, onSnapshot, limit }
+         getDocs, orderBy, updateDoc, deleteDoc, Timestamp, onSnapshot, limit,
+         arrayUnion, arrayRemove }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -1379,6 +1387,7 @@ let currentClub    = null;
 let pendingPdfType = null;
 let currentArticle = null;  // 현재 보고 있는 글 (docId 포함)
 let _editingArticleId = null; // 수정 중인 글 ID
+const _likesCache = {}; // { [docId]: { count, liked } }
 
 window.loadClubs = async function() {
   const grid = document.getElementById('club-grid');
@@ -1440,14 +1449,16 @@ async function loadRecentArticles() {
       document.getElementById('article-preview-grid').innerHTML = '';
       return;
     }
+    const articles = snap.docs.map(d => ({ ...d.data(), _docId: d.id }));
+    await fetchLikes(articles.map(a => a._docId));
     const section = document.getElementById('article-preview-section');
     const pgrid   = document.getElementById('article-preview-grid');
     pgrid.innerHTML = '';
-    snap.forEach(d => {
-      const a  = { ...d.data(), _docId: d.id };
+    articles.forEach(a => {
       const el = document.createElement('div'); el.className = 'article-preview-card';
       const preview = stripHtml(a.content || '').substring(0, 150);
       const dateStr  = a.createdAt ? formatDate(a.createdAt.toDate()) : '';
+      const likeCount = _likesCache[a._docId]?.count || 0;
       el.innerHTML = a.thumbnailUrl
         ? `<img class="article-preview-thumb" src="${a.thumbnailUrl}" alt="썸네일" onerror="this.style.display='none'">`
         : `<div class="article-preview-thumb-placeholder">📸</div>`;
@@ -1455,7 +1466,10 @@ async function loadRecentArticles() {
         <div class="article-preview-club">${a.clubName || ''}</div>
         <div class="article-preview-title">${a.title || '(제목 없음)'}</div>
         <div class="article-preview-text">${preview}</div>
-        <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">${dateStr}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">
+          <span style="font-size:11px;color:var(--text-muted);">${dateStr}</span>
+          <span class="like-badge">❤️ ${likeCount}</span>
+        </div>
       </div>`;
       el.onclick = () => openArticleView(a);
       pgrid.appendChild(el);
@@ -1527,14 +1541,16 @@ async function loadClubArticles(club) {
       container.innerHTML = '<div class="no-data-alert">아직 활동 자랑 게시글이 없습니다.</div>';
       return;
     }
+    const articles = snap.docs.map(d => ({ ...d.data(), _docId: d.id }));
+    await fetchLikes(articles.map(a => a._docId));
     container.innerHTML = '';
-    snap.forEach(d => {
-      const a       = { ...d.data(), _docId: d.id };
-      const preview = stripHtml(a.content || '').substring(0, 200);
-      const dateStr  = a.createdAt ? formatDate(a.createdAt.toDate()) : '';
+    articles.forEach(a => {
+      const preview   = stripHtml(a.content || '').substring(0, 200);
+      const dateStr   = a.createdAt ? formatDate(a.createdAt.toDate()) : '';
+      const likeCount = _likesCache[a._docId]?.count || 0;
       const el = document.createElement('div'); el.className = 'article-item';
       el.innerHTML = `<div class="article-item-title">${a.title || '(제목 없음)'}</div>
-        <div class="article-item-meta">${a.authorName || ''} &nbsp;·&nbsp; ${dateStr}</div>
+        <div class="article-item-meta">${a.authorName || ''} &nbsp;·&nbsp; ${dateStr} &nbsp;·&nbsp; <span class="like-badge">❤️ ${likeCount}</span></div>
         <div class="article-item-preview">${preview}</div>`;
       el.onclick = () => openArticleView(a);
       container.appendChild(el);
@@ -1678,14 +1694,55 @@ window.submitArticle = async function() {
   } catch(e) { showToast('저장 실패: ' + e.message); }
 };
 
+/* 좋아요 캐시 로드 */
+async function fetchLikes(docIds) {
+  await Promise.all(docIds.map(async id => {
+    try {
+      const snap = await getDoc(doc(db, 'clubArticleLikes', id));
+      const emails = snap.exists() ? (snap.data().emails || []) : [];
+      _likesCache[id] = { count: emails.length, liked: emails.includes(currentUser?.email || '') };
+    } catch { _likesCache[id] = { count: 0, liked: false }; }
+  }));
+}
+
+/* 좋아요 토글 */
+window.toggleArticleLike = async function() {
+  if (!currentArticle?._docId || !currentUser) return;
+  const id    = currentArticle._docId;
+  const cache = _likesCache[id] || { count: 0, liked: false };
+  const likeRef = doc(db, 'clubArticleLikes', id);
+  try {
+    if (cache.liked) {
+      await updateDoc(likeRef, { emails: arrayRemove(currentUser.email) });
+      cache.count = Math.max(0, cache.count - 1);
+      cache.liked = false;
+    } else {
+      await setDoc(likeRef, { emails: arrayUnion(currentUser.email) }, { merge: true });
+      cache.count++;
+      cache.liked = true;
+    }
+  } catch(e) { showToast('좋아요 처리 실패: ' + e.message); return; }
+  _likesCache[id] = cache;
+  const btn = document.getElementById('article-like-btn');
+  btn.textContent = `${cache.liked ? '❤️' : '🤍'} ${cache.count}`;
+  btn.className   = `like-btn${cache.liked ? ' liked' : ''}`;
+};
+
 /* 글 보기 */
-function openArticleView(article) {
+async function openArticleView(article) {
   currentArticle = article;
   document.getElementById('article-view-club-name').textContent = article.clubName || '';
   document.getElementById('article-view-title').textContent     = article.title    || '(제목 없음)';
   const dateStr = article.createdAt ? formatDate(article.createdAt.toDate ? article.createdAt.toDate() : new Date(article.createdAt)) : '';
   document.getElementById('article-view-meta').textContent      = `${article.authorName || ''} · ${dateStr}`;
   document.getElementById('article-view-content').innerHTML     = article.content  || '';
+
+  // 좋아요 버튼 초기화
+  await fetchLikes([article._docId]);
+  const { count, liked } = _likesCache[article._docId] || { count: 0, liked: false };
+  const btn = document.getElementById('article-like-btn');
+  btn.textContent = `${liked ? '❤️' : '🤍'} ${count}`;
+  btn.className   = `like-btn${liked ? ' liked' : ''}`;
 
   // 수정/삭제 버튼 권한 체크 (작성자 본인 또는 관리자)
   const canEdit = currentUser && (
