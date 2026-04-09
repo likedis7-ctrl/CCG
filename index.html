@@ -1462,13 +1462,15 @@ async function loadMyBookings() {
         : '';
       el.innerHTML = `<div style="width:100%;">
         <div class="booking-item-info" style="display:flex;justify-content:space-between;align-items:center;">
-          <div><strong>${data.date}${timeStr}</strong> &nbsp;·&nbsp; ${data.teacherName}<br>
-          <span style="color:var(--text-muted);font-size:12px;">${data.memo}</span></div>
+          <div><strong class="bk-date"></strong><br>
+          <span class="bk-memo" style="color:var(--text-muted);font-size:12px;"></span></div>
           <span class="status-badge ${badgeClass}">${data.status}</span>
         </div>
         ${confirmedMsg}
         ${cancelBtn}
       </div>`;
+      el.querySelector('.bk-date').textContent = `${data.date}${timeStr} · ${data.teacherName}`;
+      el.querySelector('.bk-memo').textContent = data.memo || '';
       list.appendChild(el);
     });
   } catch(e) { list.innerHTML = '<div class="no-date-msg" style="text-align:left;">불러오기 실패.</div>'; }
@@ -1656,52 +1658,81 @@ function buildApprovalCard(data, docId) {
                    : data.status === '반려'      ? 'status-rejected'
                    : 'status-pending';
 
-  // 신청 시간 (신규: requestedTimes 배열 / 구형: lunchTime 문자열)
-  const reqTimes  = data.requestedTimes?.length ? data.requestedTimes
-                  : data.lunchTime              ? [data.lunchTime]
-                  : [];
-  const confTime  = data.confirmedTime || data.lunchTime || '';
-  const reqStr    = reqTimes.join(', ') || '-';
+  // 신청 시간 — 허용 값만 화이트리스트 필터 (XSS 방어)
+  const VALID_TIMES = ['4A','4B','ET','EP'];
+  const rawTimes   = data.requestedTimes?.length ? data.requestedTimes
+                   : data.lunchTime              ? [data.lunchTime]
+                   : [];
+  const reqTimes   = rawTimes.filter(t => VALID_TIMES.includes(t));
+  const confTime   = VALID_TIMES.includes(data.confirmedTime) ? data.confirmedTime
+                   : (VALID_TIMES.includes(data.lunchTime) ? data.lunchTime : '');
 
-  // 승인 대기 카드의 시간 선택 UI
-  let timePicker = '';
-  if (data.status === '예약 대기') {
-    if (reqTimes.length <= 1) {
-      // 1개 시간 → 숨겨진 input으로 바로 전달
-      timePicker = `<input type="hidden" id="ctime-${docId}" value="${reqTimes[0]||''}">`;
-    } else {
-      // 복수 → 라디오 버튼으로 교사가 1개 선택
-      const radios = reqTimes.map((t, i) =>
-        `<label style="margin-right:12px;cursor:pointer;font-size:13px;">
-          <input type="radio" name="ctime-${docId}" value="${t}"${i===0?' checked':''}> ${t}
-        </label>`
-      ).join('');
-      timePicker = `<div style="margin-top:8px;">
-        <span style="font-size:12px;color:var(--text-muted);">확정 시간 선택:</span>
-        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;">${radios}</div>
-      </div>`;
-    }
-  }
-
+  // 카드 뼈대 (동적 텍스트는 textContent로 주입)
   const el = document.createElement('div'); el.className = 'approval-card';
   el.innerHTML = `
     <div class="approval-header">
-      <strong>${data.date}</strong>
+      <strong class="card-date"></strong>
       <span class="status-badge ${badgeClass}">${data.status}</span>
     </div>
-    <div style="font-size:13px;">신청 학생: <strong>${data.userName}</strong> (${data.email})</div>
-    <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">
-      신청 시간: <strong>${reqStr}</strong>
-      ${confTime && data.status !== '예약 대기' ? ` &nbsp;→&nbsp; 확정: <strong>${confTime}</strong>` : ''}
-    </div>
+    <div style="font-size:13px;">신청 학생: <strong class="card-student"></strong> <span class="card-email"></span></div>
+    <div style="font-size:12px;color:var(--text-muted);margin-top:2px;" class="card-times"></div>
     <div class="approval-memo" style="font-size:12px;color:var(--text-muted);margin-top:4px;">상담 내용: </div>
     ${data.status === '예약 대기' ? `
-    ${timePicker}
+    <div class="card-time-picker"></div>
     <div class="approval-actions">
       <button class="btn-action btn-confirm" onclick="approveBooking('${docId}')">승인</button>
       <button class="btn-action btn-reject"  onclick="rejectBooking('${docId}')">반려</button>
     </div>` : ''}`;
+
+  // textContent로 안전하게 주입
+  el.querySelector('.card-date').textContent    = data.date || '';
+  el.querySelector('.card-student').textContent = data.userName || '';
+  el.querySelector('.card-email').textContent   = `(${data.email || ''})`;
   el.querySelector('.approval-memo').append(data.memo || '');
+
+  // 시간 표시
+  const timesEl = el.querySelector('.card-times');
+  timesEl.append('신청 시간: ');
+  const timesStrong = document.createElement('strong');
+  timesStrong.textContent = reqTimes.join(', ') || '-';
+  timesEl.appendChild(timesStrong);
+  if (confTime && data.status !== '예약 대기') {
+    timesEl.append(' → 확정: ');
+    const confStrong = document.createElement('strong');
+    confStrong.textContent = confTime;
+    timesEl.appendChild(confStrong);
+  }
+
+  // 시간 확정 picker (승인 대기 카드)
+  const pickerEl = el.querySelector('.card-time-picker');
+  if (pickerEl) {
+    if (reqTimes.length <= 1) {
+      const hidden = document.createElement('input');
+      hidden.type = 'hidden'; hidden.id = `ctime-${docId}`; hidden.value = reqTimes[0] || '';
+      pickerEl.appendChild(hidden);
+    } else {
+      const wrap = document.createElement('div'); wrap.style.cssText = 'margin-top:8px;';
+      const label = document.createElement('span');
+      label.style.cssText = 'font-size:12px;color:var(--text-muted);';
+      label.textContent = '확정 시간 선택:';
+      wrap.appendChild(label);
+      const radioWrap = document.createElement('div');
+      radioWrap.style.cssText = 'display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;';
+      reqTimes.forEach((t, i) => {
+        const lbl = document.createElement('label');
+        lbl.style.cssText = 'margin-right:12px;cursor:pointer;font-size:13px;';
+        const radio = document.createElement('input');
+        radio.type = 'radio'; radio.name = `ctime-${docId}`; radio.value = t;
+        if (i === 0) radio.checked = true;
+        lbl.appendChild(radio);
+        lbl.append(' ' + t);
+        radioWrap.appendChild(lbl);
+      });
+      wrap.appendChild(radioWrap);
+      pickerEl.appendChild(wrap);
+    }
+  }
+
   return el;
 }
 
