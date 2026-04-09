@@ -42,7 +42,7 @@ service cloud.firestore {
       allow create: if isCNSA();
       allow update: if isAdmin() ||
         (isTeacher() && resource.data.teacherEmail == request.auth.token.email);
-      allow delete: if isAdmin();
+      allow delete: if isAdmin() || resource.data.uid == request.auth.uid;
     }
 
     // 진로체험 이수시간 (doc ID: ${year}_${email})
@@ -95,7 +95,18 @@ service cloud.firestore {
     // 동아리 아티클 좋아요
     match /clubArticleLikes/{articleId} {
       allow read: if isCNSA();
-      allow write: if isCNSA();
+      // emails 배열에 자기 이메일만 추가/삭제할 수 있도록 제한
+      allow create: if isCNSA() &&
+        request.resource.data.keys().hasOnly(['emails']) &&
+        request.resource.data.emails.hasOnly([request.auth.token.email]);
+      allow update: if isCNSA() &&
+        request.resource.data.keys().hasOnly(['emails']) &&
+        (
+          // 추가: 기존 목록 + 자기 이메일
+          request.resource.data.emails.toSet() == resource.data.emails.toSet().union([request.auth.token.email].toSet()) ||
+          // 삭제: 기존 목록 - 자기 이메일
+          request.resource.data.emails.toSet() == resource.data.emails.toSet().difference([request.auth.token.email].toSet())
+        );
     }
 
     // VERITAS CNSA 소식지

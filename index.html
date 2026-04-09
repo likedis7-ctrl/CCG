@@ -1608,12 +1608,13 @@ function subscribeTeacherApprovals() {
         </div>
         <div style="font-size:13px;">신청 학생: <strong>${data.userName}</strong> (${data.email})</div>
         ${data.lunchTime ? `<div style="font-size:12px;color:var(--text-muted);margin-top:2px;">점심 시간: <strong>${data.lunchTime}</strong></div>` : ''}
-        <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">상담 내용: ${data.memo}</div>
+        <div class="approval-memo" style="font-size:12px;color:var(--text-muted);margin-top:4px;">상담 내용: </div>
         ${data.status === '예약 대기' ? `
         <div class="approval-actions">
           <button class="btn-action btn-confirm" onclick="approveBooking('${docId}')">승인</button>
           <button class="btn-action btn-reject"  onclick="rejectBooking('${docId}')">반려</button>
         </div>` : ''}`;
+      el.querySelector('.approval-memo').append(data.memo || '');
       list.appendChild(el);
     });
   }, (e) => { list.innerHTML = '<div class="no-date-msg">불러오기 실패.</div>'; });
@@ -1889,9 +1890,12 @@ async function loadClubArticles(club) {
       const dateStr   = a.createdAt ? formatDate(a.createdAt.toDate()) : '';
       const likeCount = _likesCache[a._docId]?.count || 0;
       const el = document.createElement('div'); el.className = 'article-item';
-      el.innerHTML = `<div class="article-item-title">${a.title || '(제목 없음)'}</div>
-        <div class="article-item-meta">${a.authorName || ''} &nbsp;·&nbsp; ${dateStr} &nbsp;·&nbsp; <span class="like-badge">❤️ ${likeCount}</span></div>
-        <div class="article-item-preview">${preview}</div>`;
+      el.innerHTML = `<div class="article-item-title"></div>
+        <div class="article-item-meta"><span class="article-author-name"></span> &nbsp;·&nbsp; ${dateStr} &nbsp;·&nbsp; <span class="like-badge">❤️ ${likeCount}</span></div>
+        <div class="article-item-preview"></div>`;
+      el.querySelector('.article-item-title').textContent   = a.title || '(제목 없음)';
+      el.querySelector('.article-author-name').textContent  = a.authorName || '';
+      el.querySelector('.article-item-preview').textContent = preview;
       el.onclick = () => openArticleView(a);
       container.appendChild(el);
     });
