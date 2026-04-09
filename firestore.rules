@@ -11,16 +11,11 @@ service cloud.firestore {
     }
 
     function isTeacher() {
-      return request.auth != null && request.auth.token.email in [
-        'likedis7@cnsa.hs.kr',
-        'englandpark@cnsa.hs.kr',
-        'kihjohn@cnsa.hs.kr',
-        'sujishin@cnsa.hs.kr',
-        'jw2575@cnsa.hs.kr',
-        'fineapple@cnsa.hs.kr',
-        'edaemanse@cnsa.hs.kr',
-        'guswjd2561@cnsa.hs.kr'
-      ];
+      return isCNSA() && (
+        isAdmin() ||
+        get(/databases/$(database)/documents/settings/teachers)
+          .data.emails.hasAny([request.auth.token.email])
+      );
     }
 
     function isVeritasEditor() {

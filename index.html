@@ -704,6 +704,22 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
       </div>
     </div>
 
+    <!-- 교사 목록 관리 -->
+    <div class="admin-section" style="margin-top:1.5rem;">
+      <div class="admin-section-title">상담 교사 목록 관리</div>
+      <div class="admin-desc">상담신청에서 예약 받을 수 있는 교사 목록을 관리합니다.</div>
+      <div id="teacher-list-wrap" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:1rem;"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <input type="text" id="teacher-email-input" placeholder="teacher@cnsa.hs.kr"
+          style="flex:1;padding:0.5rem 0.75rem;border:0.5px solid var(--border);border-radius:8px;font-size:13px;font-family:var(--font-body);outline:none;min-width:200px;background:var(--bg);"
+          onkeydown="if(event.key==='Enter')addTeacher()">
+        <input type="text" id="teacher-name-input" placeholder="홍길동 선생님"
+          style="width:140px;padding:0.5rem 0.75rem;border:0.5px solid var(--border);border-radius:8px;font-size:13px;font-family:var(--font-body);outline:none;background:var(--bg);"
+          onkeydown="if(event.key==='Enter')addTeacher()">
+        <button class="btn-upload" onclick="addTeacher()" style="padding:0.55rem 1.1rem;font-size:13px;">추가</button>
+      </div>
+    </div>
+
     <!-- VERITAS CNSA 편집자 관리 -->
     <div class="admin-section" style="margin-top:1.5rem;">
       <div class="admin-section-title">VERITAS CNSA 편집자(EDITOR) 관리</div>
@@ -869,16 +885,40 @@ const firebaseConfig = {
   appId: "1:530711921579:web:e26164f7e8c21e69ea08ee"
 };
 const ADMIN_EMAIL = 'likedis7@cnsa.hs.kr';
-const TEACHERS = {
-  'likedis7@cnsa.hs.kr':    '김지민 선생님',
-  'englandpark@cnsa.hs.kr': '박영국 선생님',
-  'kihjohn@cnsa.hs.kr':     '권일홍 선생님',
-  'sujishin@cnsa.hs.kr':    '신수지 선생님',
-  'jw2575@cnsa.hs.kr':      '박준원 선생님',
-  'fineapple@cnsa.hs.kr':   '이상미 선생님',
-  'edaemanse@cnsa.hs.kr':   '이대석 선생님',
-  'guswjd2561@cnsa.hs.kr':  '조현정 선생님',
-};
+
+// 교사 목록 기본값 (Firestore 데이터 없을 때 자동 초기화용)
+const _TEACHER_DEFAULTS = [
+  { email: 'likedis7@cnsa.hs.kr',    name: '김지민 선생님' },
+  { email: 'englandpark@cnsa.hs.kr', name: '박영국 선생님' },
+  { email: 'kihjohn@cnsa.hs.kr',     name: '권일홍 선생님' },
+  { email: 'sujishin@cnsa.hs.kr',    name: '신수지 선생님' },
+  { email: 'jw2575@cnsa.hs.kr',      name: '박준원 선생님' },
+  { email: 'fineapple@cnsa.hs.kr',   name: '이상미 선생님' },
+  { email: 'edaemanse@cnsa.hs.kr',   name: '이대석 선생님' },
+  { email: 'guswjd2561@cnsa.hs.kr',  name: '조현정 선생님' },
+];
+let TEACHERS = {}; // { email: displayName } — Firestore에서 동적 로드
+
+async function loadTeachers() {
+  try {
+    const snap = await getDoc(doc(db, 'settings', 'teachers'));
+    if (snap.exists() && snap.data().list?.length > 0) {
+      TEACHERS = {};
+      (snap.data().list || []).forEach(t => { if (t.email) TEACHERS[t.email] = t.name; });
+    } else {
+      // 처음 실행 시 기본값으로 초기화 (admin만 쓰기 권한이 있으므로 비-admin은 catch로 이동)
+      TEACHERS = Object.fromEntries(_TEACHER_DEFAULTS.map(t => [t.email, t.name]));
+      try {
+        await setDoc(doc(db, 'settings', 'teachers'), {
+          list:   _TEACHER_DEFAULTS,
+          emails: _TEACHER_DEFAULTS.map(t => t.email),
+        });
+      } catch(e) { /* 비-admin은 무시 */ }
+    }
+  } catch(e) {
+    TEACHERS = Object.fromEntries(_TEACHER_DEFAULTS.map(t => [t.email, t.name]));
+  }
+}
 
 const app     = initializeApp(firebaseConfig);
 const auth    = getAuth(app);
@@ -950,6 +990,7 @@ onAuthStateChanged(auth, async (user) => {
 
   if (user && user.email.endsWith('@cnsa.hs.kr')) {
     currentUser = user;
+    await loadTeachers();
     if      (user.email === ADMIN_EMAIL)                  currentRole = 'admin';
     else if (Object.keys(TEACHERS).includes(user.email))  currentRole = 'teacher';
     else                                                   currentRole = 'student';
@@ -1032,7 +1073,7 @@ window.showSection = function(key) {
   }
   if (key === 'career') loadCareerData();
   if (key === 'veritas') loadVeritasPage();
-  if (key === 'admin') { loadClubWriteStatus(); loadVeritasEditorList(); loadBookingPeriodAdmin(); }
+  if (key === 'admin') { loadClubWriteStatus(); loadVeritasEditorList(); loadBookingPeriodAdmin(); loadTeacherList(); }
   if (key === 'club') {
     document.getElementById('club-list-area').style.display = 'block';
     document.getElementById('club-board-area').classList.remove('active');
@@ -2525,6 +2566,54 @@ window.removeVeritasEditor = async function(email) {
   await setDoc(doc(db,'settings','veritasEditors'), { emails: after });
   showToast(`${email} 삭제됨`);
   loadVeritasEditorList();
+};
+
+/* 교사 목록 관리 (관리자) */
+async function loadTeacherList() {
+  const snap = await getDoc(doc(db, 'settings', 'teachers'));
+  const list = snap.exists() ? (snap.data().list || []) : _TEACHER_DEFAULTS;
+  const el = document.getElementById('teacher-list-wrap');
+  if (!el) return;
+  el.innerHTML = list.length ? '' : '<span style="font-size:12px;color:var(--text-muted);">등록된 교사가 없습니다.</span>';
+  list.forEach(t => {
+    const tag = document.createElement('span');
+    tag.style.cssText = 'display:inline-flex;align-items:center;gap:4px;background:#e8f0fe;color:#1a3a6b;font-size:12px;padding:3px 8px;border-radius:20px;';
+    tag.innerHTML = `${t.name} <span style="color:#888;font-size:11px;">(${t.email})</span> <button onclick="removeTeacher('${t.email}')" style="background:none;border:none;cursor:pointer;color:#1a3a6b;font-size:14px;line-height:1;padding:0;">×</button>`;
+    el.appendChild(tag);
+  });
+}
+
+window.addTeacher = async function() {
+  const emailEl = document.getElementById('teacher-email-input');
+  const nameEl  = document.getElementById('teacher-name-input');
+  const email   = emailEl.value.trim().toLowerCase();
+  const name    = nameEl.value.trim();
+  if (!email.includes('@')) { showToast('올바른 이메일을 입력해주세요.'); return; }
+  if (!name) { showToast('교사 이름을 입력해주세요.'); return; }
+  const snap = await getDoc(doc(db, 'settings', 'teachers'));
+  const cur  = snap.exists() ? (snap.data().list || []) : [..._TEACHER_DEFAULTS];
+  if (cur.some(t => t.email === email)) { showToast('이미 등록된 교사입니다.'); return; }
+  const updated = [...cur, { email, name }];
+  await setDoc(doc(db, 'settings', 'teachers'), {
+    list:   updated,
+    emails: updated.map(t => t.email),
+  });
+  emailEl.value = '';
+  nameEl.value  = '';
+  showToast(`${name} 추가되었습니다.`);
+  loadTeacherList();
+};
+
+window.removeTeacher = async function(email) {
+  const snap    = await getDoc(doc(db, 'settings', 'teachers'));
+  const cur     = snap.exists() ? (snap.data().list || []) : [..._TEACHER_DEFAULTS];
+  const updated = cur.filter(t => t.email !== email);
+  await setDoc(doc(db, 'settings', 'teachers'), {
+    list:   updated,
+    emails: updated.map(t => t.email),
+  });
+  showToast(`${email} 삭제됨`);
+  loadTeacherList();
 };
 
 /* ══════════════════════════════════════
