@@ -58,6 +58,14 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // 진로체험 활동내역 (doc ID: ${year}_${email})
+    match /careerActivities/{docId} {
+      allow read: if isCNSA() && (
+        resource.data.email == request.auth.token.email.lower() || isAdmin()
+      );
+      allow write: if isAdmin();
+    }
+
     // 동아리 목록 (doc ID: ${year}_${clubName})
     match /clubs/{clubId} {
       allow read: if isCNSA();

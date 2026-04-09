@@ -523,10 +523,23 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
       <div class="section-title">진로직업체험 시간 확인</div>
       <div class="section-sub">로그인된 계정의 이수 시간을 확인합니다</div>
     </div>
-    <div class="career-table-wrap">
+    <p id="career-updated-at" style="display:none;color:#c62828;font-size:12px;font-weight:500;margin-bottom:0.75rem;"></p>
+
+    <!-- 이수완료시간 -->
+    <div style="font-size:13px;font-weight:500;color:var(--navy);margin-bottom:0.5rem;">이수 완료 시간</div>
+    <div class="career-table-wrap" style="margin-bottom:1.5rem;overflow-x:auto;">
       <table class="career-table">
-        <thead><tr><th>학번</th><th>성명</th><th>이수 완료 시간</th><th>메모</th></tr></thead>
-        <tbody id="career-tbody"><tr><td colspan="4" class="career-empty">데이터를 불러오는 중...</td></tr></tbody>
+        <thead><tr><th>학년</th><th>반</th><th>번호</th><th>성명</th><th>봉사시간</th><th>진로시간</th><th>비고</th></tr></thead>
+        <tbody id="career-tbody"><tr><td colspan="7" class="career-empty">데이터를 불러오는 중...</td></tr></tbody>
+      </table>
+    </div>
+
+    <!-- 진로직업체험 활동내역 -->
+    <div style="font-size:13px;font-weight:500;color:var(--navy);margin-bottom:0.5rem;">진로직업체험 활동내역</div>
+    <div class="career-table-wrap" style="overflow-x:auto;">
+      <table class="career-table">
+        <thead><tr><th>직업인인터뷰</th><th>직업체험</th><th>진로특강</th><th>레전드페스티벌</th><th>학술제</th><th>기타</th><th>총합</th></tr></thead>
+        <tbody id="career-act-tbody"><tr><td colspan="7" class="career-empty">데이터를 불러오는 중...</td></tr></tbody>
       </table>
     </div>
     <p class="career-note">※ 이수 시간 오류 또는 누락이 있으면 진로진학부실로 문의해 주세요.</p>
@@ -630,14 +643,24 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
     <div class="admin-warning">⚠️ 업로드한 데이터는 기존 데이터를 완전히 덮어쓰고 즉시 사이트에 반영됩니다.</div>
     <div class="admin-grid">
       <div class="admin-section">
-        <div class="admin-section-title">진로직업체험 데이터 관리</div>
-        <div class="admin-desc">학생들의 이수 시간을 갱신합니다.<br><strong>필수 컬럼:</strong> 학번, 성명, 이메일 (cnsa.hs.kr), 이수 완료 시간, 메모</div>
+        <div class="admin-section-title">진로직업체험 데이터 관리 ①  이수 완료 시간</div>
+        <div class="admin-desc">컬럼 순서: <strong>고유번호, 나이스학번, 학년, 반, 번호, 성명, 봉사시간, 진로시간, 비고</strong><br>나이스학번 + @cnsa.hs.kr = 로그인 이메일과 자동 매칭됩니다.</div>
         <div class="admin-actions">
           <button class="btn-download" onclick="downloadCareerTemplate()">⬇ 양식 다운로드</button>
           <button class="btn-upload"   onclick="document.getElementById('career-file-input').click()">⬆ 엑셀 업로드</button>
           <input type="file" id="career-file-input" class="file-input" accept=".xlsx,.xls" onchange="uploadCareerExcel(this)" />
         </div>
         <div class="upload-status" id="career-upload-status"></div>
+      </div>
+      <div class="admin-section">
+        <div class="admin-section-title">진로직업체험 데이터 관리 ②  활동내역</div>
+        <div class="admin-desc">컬럼 순서: <strong>고유번호, 나이스학번, 성명, 학급, 직업인인터뷰, 직업체험, 진로특강, 레전드페스티벌, 학술제, 기타, 총합</strong><br>나이스학번 + @cnsa.hs.kr = 로그인 이메일과 자동 매칭됩니다.</div>
+        <div class="admin-actions">
+          <button class="btn-download" onclick="downloadCareerActTemplate()">⬇ 양식 다운로드</button>
+          <button class="btn-upload"   onclick="document.getElementById('career-act-file-input').click()">⬆ 엑셀 업로드</button>
+          <input type="file" id="career-act-file-input" class="file-input" accept=".xlsx,.xls" onchange="uploadCareerActExcel(this)" />
+        </div>
+        <div class="upload-status" id="career-act-upload-status"></div>
       </div>
       <div class="admin-section">
         <div class="admin-section-title">동아리 목록 관리</div>
@@ -1560,23 +1583,60 @@ window.rejectBooking = async function(docId) {
 ══════════════════════════════════════ */
 window.loadCareerData = async function() {
   if (!currentUser) return;
-  const tbody = document.getElementById('career-tbody');
-  tbody.innerHTML = '<tr><td colspan="4" class="career-empty">불러오는 중...</td></tr>';
+  const email  = currentUser.email.toLowerCase();
+  const tbody  = document.getElementById('career-tbody');
+  const actTb  = document.getElementById('career-act-tbody');
+  const updEl  = document.getElementById('career-updated-at');
+  tbody.innerHTML  = `<tr><td colspan="7" class="career-empty">불러오는 중...</td></tr>`;
+  actTb.innerHTML  = `<tr><td colspan="7" class="career-empty">불러오는 중...</td></tr>`;
+
+  // ① 이수 완료 시간
   try {
-    const q    = query(collection(db,'careerHours'), where('email','==',currentUser.email.toLowerCase()), where('year','==',siteYear));
+    const q    = query(collection(db,'careerHours'), where('email','==',email), where('year','==',siteYear));
     const snap = await getDocs(q);
     if (snap.empty) {
-      tbody.innerHTML = '<tr><td colspan="4" class="career-empty">등록된 이수 데이터가 없습니다.<br>담당 선생님께 문의해주세요.</td></tr>';
-      return;
+      tbody.innerHTML = `<tr><td colspan="7" class="career-empty">등록된 이수 데이터가 없습니다.<br>담당 선생님께 문의해주세요.</td></tr>`;
+      updEl.style.display = 'none';
+    } else {
+      tbody.innerHTML = '';
+      snap.forEach(d => {
+        const r = d.data();
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${r.grade||'-'}</td><td>${r.cls||'-'}</td><td>${r.number||'-'}</td>
+          <td>${r.name||'-'}</td>
+          <td><span class="hours-badge">${r.volunteerHours??'-'}시간</span></td>
+          <td><span class="hours-badge">${r.careerHours??'-'}시간</span></td>
+          <td>${r.memo||'-'}</td>`;
+        tbody.appendChild(tr);
+        // 업데이트 일시
+        if (r.updatedAt) {
+          const dt = r.updatedAt.toDate();
+          updEl.textContent = `해당 데이터는 ${dt.getMonth()+1}월 ${dt.getDate()}일 업데이트된 자료를 기준으로 합니다`;
+          updEl.style.display = 'block';
+        }
+      });
     }
-    tbody.innerHTML = '';
-    snap.forEach(d => {
-      const r = d.data(); const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${r.studentId||'-'}</td><td>${r.name||'-'}</td>
-        <td><span class="hours-badge">${r.hours||0}시간</span></td><td>${r.memo||'-'}</td>`;
-      tbody.appendChild(tr);
-    });
-  } catch(e) { tbody.innerHTML = '<tr><td colspan="4" class="career-empty">데이터 로드 오류.</td></tr>'; }
+  } catch(e) { tbody.innerHTML = `<tr><td colspan="7" class="career-empty">데이터 로드 오류.</td></tr>`; }
+
+  // ② 활동내역
+  try {
+    const q2    = query(collection(db,'careerActivities'), where('email','==',email), where('year','==',siteYear));
+    const snap2 = await getDocs(q2);
+    if (snap2.empty) {
+      actTb.innerHTML = `<tr><td colspan="7" class="career-empty">등록된 활동내역 데이터가 없습니다.</td></tr>`;
+    } else {
+      actTb.innerHTML = '';
+      snap2.forEach(d => {
+        const r = d.data();
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${r.interview??'-'}</td><td>${r.experience??'-'}</td>
+          <td>${r.lecture??'-'}</td><td>${r.festival??'-'}</td>
+          <td>${r.academic??'-'}</td><td>${r.etc??'-'}</td>
+          <td><span class="hours-badge">${r.total??'-'}</span></td>`;
+        actTb.appendChild(tr);
+      });
+    }
+  } catch(e) { actTb.innerHTML = `<tr><td colspan="7" class="career-empty">데이터 로드 오류.</td></tr>`; }
 };
 
 /* ══════════════════════════════════════
@@ -2022,12 +2082,12 @@ window.editCurrentArticle = async function() {
    관리자 - 엑셀 다운로드/업로드
 ══════════════════════════════════════ */
 window.downloadCareerTemplate = function() {
-  const wb  = XLSX.utils.book_new();
-  const ws  = XLSX.utils.aoa_to_sheet([
-    ['진로직업체험 이수시간 입력 양식'],
-    ['아래 4번 행부터 데이터를 입력하세요. 이메일은 반드시 @cnsa.hs.kr 도메인이어야 합니다.'],
-    ['학번', '성명', '이메일', '이수 완료 시간', '메모'],
-    ['20240001', '홍길동', 'hong@cnsa.hs.kr', '8', '체험 우수'],
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet([
+    ['진로직업체험 이수시간 입력 양식 ① - 이수 완료 시간'],
+    ['나이스학번 + @cnsa.hs.kr = 이메일로 자동 매칭됩니다. 2번 행 헤더는 수정하지 마세요.'],
+    ['고유번호','나이스학번','학년','반','번호','성명','봉사시간','진로시간','비고'],
+    ['240201','30101','3','1','1','권상윤','31','16','우수학생'],
   ]);
   XLSX.utils.book_append_sheet(wb, ws, '양식');
   XLSX.writeFile(wb, '진로체험_이수시간_양식.xlsx');
@@ -2043,18 +2103,71 @@ window.uploadCareerExcel = async function(input) {
     const ws   = wb.Sheets[wb.SheetNames[0]];
     const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
     let count  = 0;
+    const now  = Timestamp.now();
     for (let i = 1; i < rows.length; i++) {
       const r = rows[i];
-      if (!r[2] || !String(r[2]).includes('@')) continue;
-      const email = String(r[2]).trim().toLowerCase();
+      const naissId = String(r[1]||'').trim();
+      if (!naissId) continue;
+      const email = `${naissId}@cnsa.hs.kr`.toLowerCase();
       await setDoc(doc(db,'careerHours',`${siteYear}_${email}`), {
-        studentId: String(r[0]||''), name: String(r[1]||''), email,
-        year: siteYear,
-        hours: Number(r[3])||0, memo: String(r[4]||''), updatedAt: Timestamp.now(),
+        uid: String(r[0]||''), naissId, email,
+        grade: String(r[2]||''), cls: String(r[3]||''), number: String(r[4]||''),
+        name: String(r[5]||''),
+        volunteerHours: Number(r[6])||0,
+        careerHours:    Number(r[7])||0,
+        memo: String(r[8]||''),
+        year: siteYear, updatedAt: now,
       });
       count++;
     }
     st.className = 'upload-status success'; st.textContent = `✅ ${count}명 데이터 업로드 완료`;
+  } catch(e) { st.className = 'upload-status error'; st.textContent = '❌ 오류: ' + e.message; }
+  input.value = '';
+};
+
+window.downloadCareerActTemplate = function() {
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet([
+    ['진로직업체험 입력 양식 ② - 활동내역'],
+    ['나이스학번 + @cnsa.hs.kr = 이메일로 자동 매칭됩니다. 2번 행 헤더는 수정하지 마세요.'],
+    ['고유번호','나이스학번','성명','학급','직업인인터뷰','직업체험','진로특강','레전드페스티벌','학술제','기타','총합'],
+    ['240201','30101','권상윤','3-1','2','3','4','1','1','0','11'],
+  ]);
+  XLSX.utils.book_append_sheet(wb, ws, '양식');
+  XLSX.writeFile(wb, '진로체험_활동내역_양식.xlsx');
+};
+
+window.uploadCareerActExcel = async function(input) {
+  const file = input.files[0]; if (!file) return;
+  const st   = document.getElementById('career-act-upload-status');
+  st.className = 'upload-status loading'; st.textContent = '업로드 중...'; st.style.display = 'block';
+  try {
+    const buf  = await file.arrayBuffer();
+    const wb   = XLSX.read(buf, { type: 'array' });
+    const ws   = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+    let count  = 0;
+    const now  = Timestamp.now();
+    for (let i = 1; i < rows.length; i++) {
+      const r = rows[i];
+      const naissId = String(r[1]||'').trim();
+      if (!naissId) continue;
+      const email = `${naissId}@cnsa.hs.kr`.toLowerCase();
+      await setDoc(doc(db,'careerActivities',`${siteYear}_${email}`), {
+        uid: String(r[0]||''), naissId, email,
+        name: String(r[2]||''), cls: String(r[3]||''),
+        interview:   Number(r[4])||0,
+        experience:  Number(r[5])||0,
+        lecture:     Number(r[6])||0,
+        festival:    Number(r[7])||0,
+        academic:    Number(r[8])||0,
+        etc:         Number(r[9])||0,
+        total:       Number(r[10])||0,
+        year: siteYear, updatedAt: now,
+      });
+      count++;
+    }
+    st.className = 'upload-status success'; st.textContent = `✅ ${count}명 활동내역 업로드 완료`;
   } catch(e) { st.className = 'upload-status error'; st.textContent = '❌ 오류: ' + e.message; }
   input.value = '';
 };
