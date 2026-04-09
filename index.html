@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@400;600&display=swap" rel="stylesheet" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.5/purify.min.js"></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
@@ -1875,9 +1876,9 @@ window.handlePdfUpload = async function(input) {
   const file = input.files[0];
   if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
     showToast('PDF 파일만 업로드할 수 있습니다.');
-    input.value = '';
-    return;
+    input.value = ''; return;
   }
+  if (!checkPdfSize(file)) { input.value = ''; return; }
   const type    = _pendingPdfType;
   _pendingPdfType = null;
   input.value   = '';
@@ -2033,7 +2034,7 @@ async function openArticleView(article) {
   document.getElementById('article-view-title').textContent     = article.title    || '(제목 없음)';
   const dateStr = article.createdAt ? formatDate(article.createdAt.toDate ? article.createdAt.toDate() : new Date(article.createdAt)) : '';
   document.getElementById('article-view-meta').textContent      = `${article.authorName || ''} · ${dateStr}`;
-  document.getElementById('article-view-content').innerHTML     = article.content  || '';
+  document.getElementById('article-view-content').innerHTML = DOMPurify.sanitize(article.content || '', { USE_PROFILES: { html: true } });
 
   // 좋아요 버튼 초기화
   await fetchLikes([article._docId]);
@@ -2404,6 +2405,7 @@ window.handleVeritasUpload = async function(input) {
   if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
     showToast('PDF 파일만 업로드할 수 있습니다.'); input.value = ''; return;
   }
+  if (!checkPdfSize(file)) { input.value = ''; return; }
   const year  = parseInt(document.getElementById('veritas-sel-year').value);
   const month = parseInt(document.getElementById('veritas-sel-month').value);
   closeVeritasUpload();
@@ -2440,6 +2442,7 @@ window.handleVeritasUpload2 = async function(input) {
   if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
     showToast('PDF 파일만 업로드할 수 있습니다.'); input.value = ''; return;
   }
+  if (!checkPdfSize(file)) { input.value = ''; return; }
   document.getElementById('veritas-upload2-modal').classList.remove('open');
   showToast('두 번째 파일 업로드 중...');
   try {
@@ -2527,6 +2530,16 @@ window.removeVeritasEditor = async function(email) {
 /* ══════════════════════════════════════
    유틸리티
 ══════════════════════════════════════ */
+const PDF_MAX_BYTES = 9.5 * 1024 * 1024; // 9.5MB (Cloudinary 무료 10MB 한도 여유)
+function checkPdfSize(file) {
+  if (file.size > PDF_MAX_BYTES) {
+    const mb = (file.size / 1024 / 1024).toFixed(1);
+    showToast(`파일 크기(${mb}MB)가 9.5MB를 초과합니다. 파일을 분할하여 업로드해 주세요.`);
+    return false;
+  }
+  return true;
+}
+
 function stripHtml(html) {
   const div = document.createElement('div');
   div.innerHTML = html;
