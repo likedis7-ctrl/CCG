@@ -77,12 +77,19 @@ service cloud.firestore {
     }
 
     // 동아리 아티클
+    function isClubLeader(year, clubId) {
+      return isCNSA() &&
+        get(/databases/$(database)/documents/clubs/$(string(year) + '_' + clubId))
+          .data.leaderEmail == request.auth.token.email;
+    }
+
     match /clubArticles/{articleId} {
       allow read: if isCNSA();
-      // 작성 권한: 선생님/관리자 or CNSA 인증 사용자 (기장 여부는 클라이언트에서 제어)
-      allow create: if isCNSA();
+      allow create: if isTeacher() || isAdmin() ||
+        isClubLeader(request.resource.data.year, request.resource.data.clubId);
       allow update, delete: if isAdmin() ||
-        resource.data.authorEmail == request.auth.token.email;
+        resource.data.authorEmail == request.auth.token.email ||
+        isClubLeader(resource.data.year, resource.data.clubId);
     }
 
     // 동아리 아티클 좋아요
