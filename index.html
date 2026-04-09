@@ -166,6 +166,11 @@ main { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem 3rem; }
 .approval-card { border: 0.5px solid var(--border); border-radius: 10px; padding: 1.25rem; background: var(--white); }
 .approval-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 0.5px solid var(--border); }
 .approval-actions { display: flex; gap: 8px; margin-top: 12px; }
+.approval-frame { margin-bottom: 1.25rem; }
+.approval-frame-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+.approval-frame-title { font-size: 14px; font-weight: 600; color: var(--navy); }
+.past-toggle-btn { background: none; border: 0.5px solid var(--border); border-radius: 6px; padding: 3px 10px; font-size: 12px; cursor: pointer; color: var(--text-muted); font-family: var(--font-body); transition: background 0.1s; }
+.past-toggle-btn:hover { background: var(--bg); }
 .btn-action { padding: 6px 14px; border: none; border-radius: 6px; font-size: 12px; cursor: pointer; color: white; font-weight: 500; font-family: var(--font-body); }
 .btn-confirm { background: #2E7D32; }
 .btn-reject { background: #C62828; }
@@ -511,8 +516,22 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
         </div>
       </div>
       <div class="t-tab-content" id="tab-approval">
-        <div class="approval-list" id="t-approval-list">
-          <div class="no-date-msg">불러오는 중...</div>
+        <!-- 이번달 상담 -->
+        <div class="approval-frame">
+          <div class="approval-frame-header">
+            <span class="approval-frame-title">이번달 상담</span>
+          </div>
+          <div class="approval-list" id="t-approval-list-current">
+            <div class="no-date-msg">불러오는 중...</div>
+          </div>
+        </div>
+        <!-- 과거 상담내역 -->
+        <div class="approval-frame" id="past-approval-frame" style="display:none;">
+          <div class="approval-frame-header" style="cursor:pointer;" onclick="togglePastApprovals()">
+            <span class="approval-frame-title" style="color:var(--text-muted);">과거 상담내역</span>
+            <button id="past-toggle-btn" class="past-toggle-btn">펴기 ▼</button>
+          </div>
+          <div class="approval-list" id="t-approval-list-past" style="display:none;"></div>
         </div>
       </div>
     </div>
@@ -1141,8 +1160,8 @@ async function loadAndApplyBookingPeriod() {
     } else {
       const data = snap.data();
       if (data.endDate && data.endDate < todayKST()) {
-        // 기간 만료 → 자동 초기화
-        await deleteDoc(doc(db, 'settings', 'bookingPeriod'));
+        // 기간 만료 → 자동 초기화 (관리자만 삭제 권한)
+        if (currentRole === 'admin') await deleteDoc(doc(db, 'settings', 'bookingPeriod'));
         _bookingPeriod = null;
       } else {
         _bookingPeriod = { startDate: data.startDate, endDate: data.endDate };
@@ -1585,40 +1604,80 @@ window.switchTeacherTab = function(btn) {
 /* ══════════════════════════════════════
    선생님 예약 승인 (실시간)
 ══════════════════════════════════════ */
+function parseKoreanDate(str) {
+  // "2025년 4월 9일" → Date
+  const m = (str || '').match(/(\d+)년\s*(\d+)월\s*(\d+)일/);
+  return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null;
+}
+
+function isThisMonth(dateStr) {
+  const d = parseKoreanDate(dateStr);
+  if (!d) return true; // 파싱 실패 시 이번달로 처리
+  const now = new Date();
+  return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+}
+
+function buildApprovalCard(data, docId) {
+  const badgeClass = data.status === '예약 확정' ? 'status-confirmed'
+                   : data.status === '반려'      ? 'status-rejected'
+                   : 'status-pending';
+  const el = document.createElement('div'); el.className = 'approval-card';
+  el.innerHTML = `
+    <div class="approval-header">
+      <strong>${data.date} · ${data.teacherName}</strong>
+      <span class="status-badge ${badgeClass}">${data.status}</span>
+    </div>
+    <div style="font-size:13px;">신청 학생: <strong>${data.userName}</strong> (${data.email})</div>
+    ${data.lunchTime ? `<div style="font-size:12px;color:var(--text-muted);margin-top:2px;">점심 시간: <strong>${data.lunchTime}</strong></div>` : ''}
+    <div class="approval-memo" style="font-size:12px;color:var(--text-muted);margin-top:4px;">상담 내용: </div>
+    ${data.status === '예약 대기' ? `
+    <div class="approval-actions">
+      <button class="btn-action btn-confirm" onclick="approveBooking('${docId}')">승인</button>
+      <button class="btn-action btn-reject"  onclick="rejectBooking('${docId}')">반려</button>
+    </div>` : ''}`;
+  el.querySelector('.approval-memo').append(data.memo || '');
+  return el;
+}
+
 function subscribeTeacherApprovals() {
   if (!currentUser) return;
   if (approvalsUnsubscribe) { approvalsUnsubscribe(); approvalsUnsubscribe = null; }
-  const list = document.getElementById('t-approval-list');
-  list.innerHTML = '<div class="no-date-msg">불러오는 중...</div>';
+  const curList  = document.getElementById('t-approval-list-current');
+  const pastList = document.getElementById('t-approval-list-past');
+  curList.innerHTML = '<div class="no-date-msg">불러오는 중...</div>';
 
   const q = query(collection(db,'bookings'), where('teacherEmail','==',currentUser.email), orderBy('createdAt','desc'));
   approvalsUnsubscribe = onSnapshot(q, (snap) => {
-    if (snap.empty) { list.innerHTML = '<div class="no-date-msg">예약 내역이 없습니다.</div>'; return; }
-    list.innerHTML = '';
+    curList.innerHTML  = '';
+    pastList.innerHTML = '';
+    let curCount = 0, pastCount = 0;
+
     snap.forEach(d => {
       const data = d.data(); const docId = d.id;
-      const badgeClass = data.status === '예약 확정' ? 'status-confirmed'
-                        : data.status === '반려'      ? 'status-rejected'
-                        : 'status-pending';
-      const el = document.createElement('div'); el.className = 'approval-card';
-      el.innerHTML = `
-        <div class="approval-header">
-          <strong>${data.date} · ${data.teacherName}</strong>
-          <span class="status-badge ${badgeClass}">${data.status}</span>
-        </div>
-        <div style="font-size:13px;">신청 학생: <strong>${data.userName}</strong> (${data.email})</div>
-        ${data.lunchTime ? `<div style="font-size:12px;color:var(--text-muted);margin-top:2px;">점심 시간: <strong>${data.lunchTime}</strong></div>` : ''}
-        <div class="approval-memo" style="font-size:12px;color:var(--text-muted);margin-top:4px;">상담 내용: </div>
-        ${data.status === '예약 대기' ? `
-        <div class="approval-actions">
-          <button class="btn-action btn-confirm" onclick="approveBooking('${docId}')">승인</button>
-          <button class="btn-action btn-reject"  onclick="rejectBooking('${docId}')">반려</button>
-        </div>` : ''}`;
-      el.querySelector('.approval-memo').append(data.memo || '');
-      list.appendChild(el);
+      const el = buildApprovalCard(data, docId);
+      if (isThisMonth(data.date)) {
+        curList.appendChild(el);
+        curCount++;
+      } else {
+        pastList.appendChild(el);
+        pastCount++;
+      }
     });
-  }, (e) => { list.innerHTML = '<div class="no-date-msg">불러오기 실패.</div>'; });
+
+    if (curCount === 0) curList.innerHTML = '<div class="no-date-msg">이번달 예약 내역이 없습니다.</div>';
+
+    const pastFrame = document.getElementById('past-approval-frame');
+    pastFrame.style.display = pastCount > 0 ? 'block' : 'none';
+  }, () => { curList.innerHTML = '<div class="no-date-msg">불러오기 실패.</div>'; });
 }
+
+window.togglePastApprovals = function() {
+  const body = document.getElementById('t-approval-list-past');
+  const btn  = document.getElementById('past-toggle-btn');
+  const open = body.style.display === 'none';
+  body.style.display = open ? 'flex' : 'none';
+  btn.textContent    = open ? '접기 ▲' : '펴기 ▼';
+};
 
 window.approveBooking = async function(docId) {
   if (!confirm('예약을 승인하시겠습니까?')) return;
