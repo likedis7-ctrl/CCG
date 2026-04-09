@@ -447,9 +447,6 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
       <div class="booking-layout" style="margin-top:1.5rem;">
         <div class="calendar-wrap">
           <div id="booking-period-banner" style="font-size:13px;font-weight:500;padding:10px 14px;border-radius:8px;margin-bottom:1rem;border:1px solid #e0e0e0;text-align:center;background:#f5f5f5;color:#757575;display:none;"></div>
-          <div style="background:var(--accent-light);color:#7A5E00;font-size:12px;font-weight:500;padding:8px 12px;border-radius:8px;margin-bottom:1rem;text-align:center;">
-            📢 모든 상담은 점심시간에 진행됩니다
-          </div>
           <div class="cal-header">
             <div class="cal-title" id="cal-title"></div>
             <div class="cal-nav">
@@ -499,15 +496,14 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
           </div>
           <div class="slot-setting-panel">
             <h3 id="t-selected-date-title">날짜를 선택해주세요</h3>
-            <p>선택한 날짜에 상담을 열어둘 카테고리를 체크하고 저장하세요.</p>
+            <p>선택한 날짜에 상담 가능한 시간대를 체크하고 저장하세요.</p>
             <div id="t-category-box" style="display:none;">
               <div class="category-checkboxes">
-                <label style="font-weight:500;color:var(--navy);"><input type="checkbox" value="모두" onchange="toggleAllCategories(this)"> 모두</label>
-                <label><input type="checkbox" value="수시/학종"> 수시/학종</label>
-                <label><input type="checkbox" value="정시/수능"> 정시/수능</label>
-                <label><input type="checkbox" value="진로탐색"> 진로탐색</label>
-                <label><input type="checkbox" value="학습방법"> 학습방법</label>
-                <label><input type="checkbox" value="기타상담"> 기타상담</label>
+                <label style="font-weight:500;color:var(--navy);"><input type="checkbox" value="모두" onchange="toggleAllTimes(this)"> 모두</label>
+                <label><input type="checkbox" value="4A"> 4A</label>
+                <label><input type="checkbox" value="4B"> 4B</label>
+                <label><input type="checkbox" value="ET"> ET</label>
+                <label><input type="checkbox" value="EP"> EP</label>
               </div>
               <button class="btn-slot-save" onclick="saveTeacherSlot()">일정 열기 / 수정하기</button>
               <button class="btn-slot-del"  onclick="deleteTeacherSlot()">이 날짜 내 상담 닫기</button>
@@ -1109,21 +1105,19 @@ let curMonth = today.getMonth();
 
 let selectedDate    = null;
 let selectedTeacher = null;
-let selectedLunch   = null;
-let openedSlots     = {}; // { 'YYYY-MM-DD': [{teacherEmail, teacherName, categories}] }
+let selectedTimes   = []; // 학생이 선택한 희망 시간 (복수)
+let openedSlots     = {}; // { 'YYYY-MM-DD': [{teacherEmail, teacherName, times}] }
 
-window.toggleAllCategories = function(cb) {
+window.toggleAllTimes = function(cb) {
   document.querySelectorAll('#t-category-box input[type=checkbox]:not([value=모두])').forEach(c => c.checked = cb.checked);
 };
 
-window.selectLunch = function(time) {
-  selectedLunch = time;
-  document.querySelectorAll('.lunch-option').forEach(el => el.classList.remove('chosen'));
-  document.getElementById(`lunch-${time}`).classList.add('chosen');
-  const desc = time === '4A'
-    ? '4A(11:30~12:20) 시간에 선생님과 식사하며 상담합니다'
-    : '4B(12:30~13:20) 시간에 선생님과 식사하며 상담합니다';
-  document.getElementById('lunch-desc').textContent = desc;
+window.toggleTimeSelection = function(cb) {
+  if (cb.checked) {
+    if (!selectedTimes.includes(cb.value)) selectedTimes.push(cb.value);
+  } else {
+    selectedTimes = selectedTimes.filter(t => t !== cb.value);
+  }
 };
 
 const monthNames = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
@@ -1325,7 +1319,7 @@ function renderStudentCal() {
 function selectDate(d, key) {
   selectedDate    = d;
   selectedTeacher = null;
-  selectedLunch   = null;
+  selectedTimes   = [];
   renderStudentCal();
   updatePanel(key);
 }
@@ -1338,21 +1332,16 @@ function updatePanel(key) {
     <input type="text" readonly value="${curYear}년 ${curMonth+1}월 ${selectedDate}일"></div>
     <div class="field"><label>상담 선생님 선택</label>`;
   slots.forEach((s, i) => {
-    const cats = (s.categories||[]).join(', ') || '일반 상담';
+    const times = (s.times||[]).join(' · ') || '-';
     html += `<div class="t-option" id="topt-${i}" onclick="selectTeacher(${i},'${key}')">
       <span>${s.teacherName}</span>
-      <span class="t-field-badge">${cats}</span>
+      <span class="t-field-badge">${times}</span>
     </div>`;
   });
   html += `</div>
-    <div class="field"><label>점심 시간 선택</label>
-      <div class="t-option lunch-option" id="lunch-4A" onclick="selectLunch('4A')">
-        <span>4A</span><span class="t-field-badge">11:30 ~ 12:20</span>
-      </div>
-      <div class="t-option lunch-option" id="lunch-4B" onclick="selectLunch('4B')">
-        <span>4B</span><span class="t-field-badge">12:30 ~ 13:20</span>
-      </div>
-      <div id="lunch-desc" style="font-size:12px;color:var(--text-muted);margin-top:6px;"></div>
+    <div class="field" id="time-select-field" style="display:none;">
+      <label>상담 시간 선택 <span style="font-size:11px;font-weight:400;color:var(--text-muted);">복수 선택 가능</span></label>
+      <div id="time-checkboxes" class="category-checkboxes" style="margin-top:6px;"></div>
     </div>
     <div class="field"><label>상담 희망 내용</label>
     <textarea id="consult-memo" placeholder="상담받고 싶은 내용을 간략히 적어주세요"></textarea></div>
@@ -1362,14 +1351,26 @@ function updatePanel(key) {
 
 window.selectTeacher = function(i, key) {
   selectedTeacher = i;
+  selectedTimes   = [];
   document.querySelectorAll('.t-option').forEach(el => el.classList.remove('chosen'));
   document.getElementById(`topt-${i}`)?.classList.add('chosen');
+
+  const slot       = (openedSlots[key] || [])[i];
+  const availTimes = slot?.times || [];
+  const field      = document.getElementById('time-select-field');
+  const box        = document.getElementById('time-checkboxes');
+  if (!field || !box) return;
+  if (availTimes.length === 0) { field.style.display = 'none'; return; }
+  box.innerHTML = availTimes.map(t =>
+    `<label><input type="checkbox" value="${t}" onchange="toggleTimeSelection(this)"> ${t}</label>`
+  ).join('');
+  field.style.display = 'block';
 };
 
 window.submitBooking = async function(key) {
   if (!currentUser) { showToast('로그인이 필요합니다.'); return; }
   if (selectedTeacher === null) { showToast('선생님을 선택해주세요.'); return; }
-  if (!selectedLunch) { showToast('점심 시간(4A/4B)을 선택해주세요.'); return; }
+  if (!selectedTimes.length) { showToast('상담 시간을 하나 이상 선택해주세요.'); return; }
   const memo = (document.getElementById('consult-memo')?.value || '').trim();
   if (!memo) { showToast('상담 내용을 입력해주세요.'); return; }
   const slot = (openedSlots[key]||[])[selectedTeacher];
@@ -1391,23 +1392,23 @@ window.submitBooking = async function(key) {
 
   try {
     await addDoc(collection(db, 'bookings'), {
-      uid:          currentUser.uid,
-      email:        currentUser.email,
-      userName:     currentUser.displayName || currentUser.email,
-      teacherEmail: slot.teacherEmail,
-      teacherName:  slot.teacherName,
-      date:         `${curYear}년 ${curMonth+1}월 ${selectedDate}일`,
-      dateKey:      key,
-      lunchTime:    selectedLunch,
+      uid:            currentUser.uid,
+      email:          currentUser.email,
+      userName:       currentUser.displayName || currentUser.email,
+      teacherEmail:   slot.teacherEmail,
+      teacherName:    slot.teacherName,
+      date:           `${curYear}년 ${curMonth+1}월 ${selectedDate}일`,
+      dateKey:        key,
+      requestedTimes: selectedTimes,
       memo,
-      status:       '예약 대기',
-      createdAt:    Timestamp.now(),
+      status:         '예약 대기',
+      createdAt:      Timestamp.now(),
     });
     document.getElementById('modal-title').textContent = '예약이 신청되었습니다!';
     document.getElementById('modal-msg').innerHTML =
       `<b>${slot.teacherName}</b>에게 상담 예약이 신청되었습니다.<br>
-       <b>${curYear}년 ${curMonth+1}월 ${selectedDate}일</b><br>
-       선생님 승인 후 확정됩니다.`;
+       <b>${curYear}년 ${curMonth+1}월 ${selectedDate}일</b> · ${selectedTimes.join(', ')}<br>
+       선생님 승인 후 시간이 확정됩니다.`;
     document.getElementById('modal-bg').classList.add('open');
     selectedDate = null; selectedTeacher = null;
     renderStudentCal();
@@ -1431,18 +1432,20 @@ async function loadMyBookings() {
                         : data.status === '반려'      ? 'status-rejected'
                         : 'status-pending';
       const el = document.createElement('div'); el.className = 'booking-item';
-      const lunchStr = data.lunchTime ? ` · ${data.lunchTime}` : '';
+      const reqTimes  = data.requestedTimes?.join(', ') || data.lunchTime || '';
+      const confTime  = data.confirmedTime || data.lunchTime || '';
+      const timeStr   = reqTimes ? ` · ${reqTimes}` : '';
       const confirmedMsg = data.status === '예약 확정'
         ? `<div style="margin-top:8px;font-size:12px;color:#1B5E20;background:#E8F5E9;padding:8px 10px;border-radius:6px;line-height:1.7;">
-            📅 ${data.date} ${data.lunchTime||''} 시간에 상담 신청이 최종 승인되었습니다.<br>
+            📅 ${data.date} <strong>${confTime}</strong> 시간으로 상담이 확정되었습니다.<br>
             ${data.teacherName}과 구글챗으로 세부 약속시간을 정해주세요.
            </div>` : '';
-      const cancelBtn = data.status === '대기'
+      const cancelBtn = data.status === '예약 대기'
         ? `<button onclick="cancelMyBooking('${d.id}',event)" style="margin-top:8px;padding:4px 12px;background:none;border:0.5px solid #ccc;border-radius:6px;font-size:12px;color:var(--text-muted);cursor:pointer;font-family:var(--font-body);">예약 취소</button>`
         : '';
       el.innerHTML = `<div style="width:100%;">
         <div class="booking-item-info" style="display:flex;justify-content:space-between;align-items:center;">
-          <div><strong>${data.date}${lunchStr}</strong> &nbsp;·&nbsp; ${data.teacherName}<br>
+          <div><strong>${data.date}${timeStr}</strong> &nbsp;·&nbsp; ${data.teacherName}<br>
           <span style="color:var(--text-muted);font-size:12px;">${data.memo}</span></div>
           <span class="status-badge ${badgeClass}">${data.status}</span>
         </div>
@@ -1536,11 +1539,13 @@ function showSlotPanel(key) {
   const checks   = box.querySelectorAll('input[type=checkbox]');
   const daySlots = allSlotsCache[key] || [];
   const existing = daySlots.find(s => s.teacherEmail === currentUser?.email);
-  const savedCats = existing ? (existing.categories || []) : [];
-  const isAll = savedCats.includes('모두');
+  // times 필드 우선, 구형 데이터는 categories에서 fallback
+  const savedTimes = existing ? (existing.times || existing.categories || []) : [];
+  const allSlots   = ['4A','4B','ET','EP'];
+  const isAll      = allSlots.every(t => savedTimes.includes(t)) || savedTimes.includes('모두');
   checks.forEach(cb => {
     if (cb.value === '모두') cb.checked = isAll;
-    else cb.checked = isAll || savedCats.includes(cb.value);
+    else cb.checked = isAll || savedTimes.includes(cb.value);
   });
 }
 
@@ -1562,16 +1567,16 @@ window.saveTeacherSlot = async function() {
   if (!tSelectedDate || !currentUser) return;
   const key  = `${tCurYear}-${String(tCurMonth+1).padStart(2,'0')}-${String(tSelectedDate).padStart(2,'0')}`;
   const allChecked = document.querySelector('#t-category-box input[value=모두]')?.checked;
-  const cats = allChecked
-    ? ['모두']
+  const times = allChecked
+    ? ['4A','4B','ET','EP']
     : [...document.querySelectorAll('#t-category-box input:checked:not([value=모두])')].map(c => c.value);
-  if (!cats.length) { showToast('카테고리를 하나 이상 선택해주세요.'); return; }
+  if (!times.length) { showToast('시간을 하나 이상 선택해주세요.'); return; }
   const myName   = TEACHERS[currentUser.email] || currentUser.displayName || '선생님';
   const slotDoc  = doc(db, 'teacherSlots', key);
   const existing = await getDoc(slotDoc);
   let slots      = existing.exists() ? (existing.data().slots || []) : [];
   const idx      = slots.findIndex(s => s.teacherEmail === currentUser.email);
-  const newSlot  = { teacherEmail: currentUser.email, teacherName: myName, categories: cats };
+  const newSlot  = { teacherEmail: currentUser.email, teacherName: myName, times };
   if (idx >= 0) slots[idx] = newSlot; else slots.push(newSlot);
   await setDoc(slotDoc, { slots, updatedAt: Timestamp.now() });
   showToast('일정이 저장되었습니다!');
@@ -1621,16 +1626,48 @@ function buildApprovalCard(data, docId) {
   const badgeClass = data.status === '예약 확정' ? 'status-confirmed'
                    : data.status === '반려'      ? 'status-rejected'
                    : 'status-pending';
+
+  // 신청 시간 (신규: requestedTimes 배열 / 구형: lunchTime 문자열)
+  const reqTimes  = data.requestedTimes?.length ? data.requestedTimes
+                  : data.lunchTime              ? [data.lunchTime]
+                  : [];
+  const confTime  = data.confirmedTime || data.lunchTime || '';
+  const reqStr    = reqTimes.join(', ') || '-';
+
+  // 승인 대기 카드의 시간 선택 UI
+  let timePicker = '';
+  if (data.status === '예약 대기') {
+    if (reqTimes.length <= 1) {
+      // 1개 시간 → 숨겨진 input으로 바로 전달
+      timePicker = `<input type="hidden" id="ctime-${docId}" value="${reqTimes[0]||''}">`;
+    } else {
+      // 복수 → 라디오 버튼으로 교사가 1개 선택
+      const radios = reqTimes.map((t, i) =>
+        `<label style="margin-right:12px;cursor:pointer;font-size:13px;">
+          <input type="radio" name="ctime-${docId}" value="${t}"${i===0?' checked':''}> ${t}
+        </label>`
+      ).join('');
+      timePicker = `<div style="margin-top:8px;">
+        <span style="font-size:12px;color:var(--text-muted);">확정 시간 선택:</span>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;">${radios}</div>
+      </div>`;
+    }
+  }
+
   const el = document.createElement('div'); el.className = 'approval-card';
   el.innerHTML = `
     <div class="approval-header">
-      <strong>${data.date} · ${data.teacherName}</strong>
+      <strong>${data.date}</strong>
       <span class="status-badge ${badgeClass}">${data.status}</span>
     </div>
     <div style="font-size:13px;">신청 학생: <strong>${data.userName}</strong> (${data.email})</div>
-    ${data.lunchTime ? `<div style="font-size:12px;color:var(--text-muted);margin-top:2px;">점심 시간: <strong>${data.lunchTime}</strong></div>` : ''}
+    <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">
+      신청 시간: <strong>${reqStr}</strong>
+      ${confTime && data.status !== '예약 대기' ? ` &nbsp;→&nbsp; 확정: <strong>${confTime}</strong>` : ''}
+    </div>
     <div class="approval-memo" style="font-size:12px;color:var(--text-muted);margin-top:4px;">상담 내용: </div>
     ${data.status === '예약 대기' ? `
+    ${timePicker}
     <div class="approval-actions">
       <button class="btn-action btn-confirm" onclick="approveBooking('${docId}')">승인</button>
       <button class="btn-action btn-reject"  onclick="rejectBooking('${docId}')">반려</button>
@@ -1680,8 +1717,13 @@ window.togglePastApprovals = function() {
 };
 
 window.approveBooking = async function(docId) {
-  if (!confirm('예약을 승인하시겠습니까?')) return;
-  await updateDoc(doc(db,'bookings',docId), { status: '예약 확정' });
+  // 확정 시간 읽기 (라디오 or 숨겨진 input)
+  const radio   = document.querySelector(`input[name="ctime-${docId}"]:checked`);
+  const hidden  = document.getElementById(`ctime-${docId}`);
+  const confirmedTime = radio?.value || hidden?.value || '';
+  if (!confirmedTime) { showToast('확정할 시간을 선택해주세요.'); return; }
+  if (!confirm(`${confirmedTime} 시간으로 예약을 확정하시겠습니까?`)) return;
+  await updateDoc(doc(db,'bookings',docId), { status: '예약 확정', confirmedTime });
   showToast('예약이 확정되었습니다. 해당 학생과 구글챗을 통해 약속시간을 잡아주세요.');
 };
 window.rejectBooking = async function(docId) {
