@@ -498,12 +498,22 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
             <h3 id="t-selected-date-title">날짜를 선택해주세요</h3>
             <p>선택한 날짜에 상담 가능한 시간대를 체크하고 저장하세요.</p>
             <div id="t-category-box" style="display:none;">
-              <div class="category-checkboxes">
+              <div style="font-size:12px;font-weight:600;color:var(--navy);margin-bottom:4px;">상담 시간</div>
+              <div class="category-checkboxes" id="t-time-checkboxes">
                 <label style="font-weight:500;color:var(--navy);"><input type="checkbox" value="모두" onchange="toggleAllTimes(this)"> 모두</label>
                 <label><input type="checkbox" value="4A"> 4A</label>
                 <label><input type="checkbox" value="4B"> 4B</label>
                 <label><input type="checkbox" value="ET"> ET</label>
                 <label><input type="checkbox" value="EP"> EP</label>
+              </div>
+              <div style="font-size:12px;font-weight:600;color:var(--navy);margin:10px 0 4px;">상담 카테고리</div>
+              <div class="category-checkboxes" id="t-cat-checkboxes">
+                <label style="font-weight:500;color:var(--navy);"><input type="checkbox" value="모두" onchange="toggleAllCats(this)"> 모두</label>
+                <label><input type="checkbox" value="수시/학종"> 수시/학종</label>
+                <label><input type="checkbox" value="정시/수능"> 정시/수능</label>
+                <label><input type="checkbox" value="진로탐색"> 진로탐색</label>
+                <label><input type="checkbox" value="학습방법"> 학습방법</label>
+                <label><input type="checkbox" value="기타상담"> 기타상담</label>
               </div>
               <button class="btn-slot-save" onclick="saveTeacherSlot()">일정 열기 / 수정하기</button>
               <button class="btn-slot-del"  onclick="deleteTeacherSlot()">이 날짜 내 상담 닫기</button>
@@ -1109,7 +1119,10 @@ let selectedTimes   = []; // 학생이 선택한 희망 시간 (복수)
 let openedSlots     = {}; // { 'YYYY-MM-DD': [{teacherEmail, teacherName, times}] }
 
 window.toggleAllTimes = function(cb) {
-  document.querySelectorAll('#t-category-box input[type=checkbox]:not([value=모두])').forEach(c => c.checked = cb.checked);
+  document.querySelectorAll('#t-time-checkboxes input[type=checkbox]:not([value=모두])').forEach(c => c.checked = cb.checked);
+};
+window.toggleAllCats = function(cb) {
+  document.querySelectorAll('#t-cat-checkboxes input[type=checkbox]:not([value=모두])').forEach(c => c.checked = cb.checked);
 };
 
 window.toggleTimeSelection = function(cb) {
@@ -1333,9 +1346,13 @@ function updatePanel(key) {
     <div class="field"><label>상담 선생님 선택</label>`;
   slots.forEach((s, i) => {
     const times = (s.times||[]).join(' · ') || '-';
+    const cats  = (s.categories||[]).includes('모두') ? '전체' : (s.categories||[]).join(', ') || '일반 상담';
     html += `<div class="t-option" id="topt-${i}" onclick="selectTeacher(${i},'${key}')">
       <span>${s.teacherName}</span>
-      <span class="t-field-badge">${times}</span>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;">
+        <span class="t-field-badge">${times}</span>
+        <span class="t-field-badge" style="background:var(--accent-light);color:#7A5E00;">${cats}</span>
+      </div>
     </div>`;
   });
   html += `</div>
@@ -1539,13 +1556,20 @@ function showSlotPanel(key) {
   const checks   = box.querySelectorAll('input[type=checkbox]');
   const daySlots = allSlotsCache[key] || [];
   const existing = daySlots.find(s => s.teacherEmail === currentUser?.email);
-  // times 필드 우선, 구형 데이터는 categories에서 fallback
-  const savedTimes = existing ? (existing.times || existing.categories || []) : [];
-  const allSlots   = ['4A','4B','ET','EP'];
-  const isAll      = allSlots.every(t => savedTimes.includes(t)) || savedTimes.includes('모두');
-  checks.forEach(cb => {
-    if (cb.value === '모두') cb.checked = isAll;
-    else cb.checked = isAll || savedTimes.includes(cb.value);
+  // 시간 체크박스 복원
+  const savedTimes  = existing ? (existing.times || []) : [];
+  const allTimeVals = ['4A','4B','ET','EP'];
+  const isAllTimes  = allTimeVals.every(t => savedTimes.includes(t));
+  box.querySelectorAll('#t-time-checkboxes input[type=checkbox]').forEach(cb => {
+    if (cb.value === '모두') cb.checked = isAllTimes;
+    else cb.checked = isAllTimes || savedTimes.includes(cb.value);
+  });
+  // 카테고리 체크박스 복원
+  const savedCats  = existing ? (existing.categories || []) : [];
+  const isAllCats  = savedCats.includes('모두');
+  box.querySelectorAll('#t-cat-checkboxes input[type=checkbox]').forEach(cb => {
+    if (cb.value === '모두') cb.checked = isAllCats;
+    else cb.checked = isAllCats || savedCats.includes(cb.value);
   });
 }
 
@@ -1566,17 +1590,22 @@ window.changeTeacherMonth = function(dir) {
 window.saveTeacherSlot = async function() {
   if (!tSelectedDate || !currentUser) return;
   const key  = `${tCurYear}-${String(tCurMonth+1).padStart(2,'0')}-${String(tSelectedDate).padStart(2,'0')}`;
-  const allChecked = document.querySelector('#t-category-box input[value=모두]')?.checked;
-  const times = allChecked
+  const allTimesChecked = document.querySelector('#t-time-checkboxes input[value=모두]')?.checked;
+  const times = allTimesChecked
     ? ['4A','4B','ET','EP']
-    : [...document.querySelectorAll('#t-category-box input:checked:not([value=모두])')].map(c => c.value);
+    : [...document.querySelectorAll('#t-time-checkboxes input:checked:not([value=모두])')].map(c => c.value);
   if (!times.length) { showToast('시간을 하나 이상 선택해주세요.'); return; }
+  const allCatsChecked = document.querySelector('#t-cat-checkboxes input[value=모두]')?.checked;
+  const cats = allCatsChecked
+    ? ['모두']
+    : [...document.querySelectorAll('#t-cat-checkboxes input:checked:not([value=모두])')].map(c => c.value);
+  if (!cats.length) { showToast('상담 카테고리를 하나 이상 선택해주세요.'); return; }
   const myName   = TEACHERS[currentUser.email] || currentUser.displayName || '선생님';
   const slotDoc  = doc(db, 'teacherSlots', key);
   const existing = await getDoc(slotDoc);
   let slots      = existing.exists() ? (existing.data().slots || []) : [];
   const idx      = slots.findIndex(s => s.teacherEmail === currentUser.email);
-  const newSlot  = { teacherEmail: currentUser.email, teacherName: myName, times };
+  const newSlot  = { teacherEmail: currentUser.email, teacherName: myName, times, categories: cats };
   if (idx >= 0) slots[idx] = newSlot; else slots.push(newSlot);
   await setDoc(slotDoc, { slots, updatedAt: Timestamp.now() });
   showToast('일정이 저장되었습니다!');
