@@ -1312,7 +1312,7 @@ function subscribeTeacherApprovals() {
 window.approveBooking = async function(docId) {
   if (!confirm('예약을 승인하시겠습니까?')) return;
   await updateDoc(doc(db,'bookings',docId), { status: '예약 확정' });
-  showToast('예약이 확정되었습니다.');
+  showToast('예약이 확정되었습니다. 해당 학생과 구글챗을 통해 약속시간을 잡아주세요.');
 };
 window.rejectBooking = async function(docId) {
   if (!confirm('예약을 반려하시겠습니까?')) return;
