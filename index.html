@@ -523,7 +523,10 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
       <div class="section-title">진로직업체험 시간 확인</div>
       <div class="section-sub">로그인된 계정의 이수 시간을 확인합니다</div>
     </div>
-    <p id="career-updated-at" style="display:none;color:#c62828;font-size:12px;font-weight:500;margin-bottom:0.75rem;"></p>
+    <div style="display:none;align-items:flex-start;gap:1rem;flex-wrap:wrap;margin-bottom:0.75rem;" id="career-updated-at-wrap">
+      <p id="career-updated-at" style="color:#c62828;font-size:12px;font-weight:500;margin:0;white-space:nowrap;"></p>
+      <p style="color:var(--text-muted);font-size:12px;margin:0;line-height:1.6;">업데이트는 1달 주기로 이루어집니다. 보고서 제출양이 많아 검사에 시간이 걸리므로, 반영이 늦어질 수 있습니다.</p>
+    </div>
 
     <!-- 이수완료시간 -->
     <div style="font-size:13px;font-weight:500;color:var(--navy);margin-bottom:0.5rem;">이수 완료 시간</div>
@@ -542,7 +545,7 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
         <tbody id="career-act-tbody"><tr><td colspan="7" class="career-empty">데이터를 불러오는 중...</td></tr></tbody>
       </table>
     </div>
-    <p class="career-note">※ 이수 시간 오류 또는 누락이 있으면 진로진학부실로 문의해 주세요.</p>
+    <p class="career-note">※ 이수 시간 오류 또는 누락이 있으면 진로진학부 조현정 선생님께 문의해 주세요. (방문 혹은 구글챗)</p>
   </div>
 
   <!-- 4. 동아리 -->
@@ -1587,6 +1590,7 @@ window.loadCareerData = async function() {
   const tbody  = document.getElementById('career-tbody');
   const actTb  = document.getElementById('career-act-tbody');
   const updEl  = document.getElementById('career-updated-at');
+  const updWrap = document.getElementById('career-updated-at-wrap');
   tbody.innerHTML  = `<tr><td colspan="7" class="career-empty">불러오는 중...</td></tr>`;
   actTb.innerHTML  = `<tr><td colspan="7" class="career-empty">불러오는 중...</td></tr>`;
 
@@ -1596,7 +1600,7 @@ window.loadCareerData = async function() {
     const snap = await getDocs(q);
     if (snap.empty) {
       tbody.innerHTML = `<tr><td colspan="7" class="career-empty">등록된 이수 데이터가 없습니다.<br>담당 선생님께 문의해주세요.</td></tr>`;
-      updEl.style.display = 'none';
+      if (updWrap) updWrap.style.display = 'none';
     } else {
       tbody.innerHTML = '';
       snap.forEach(d => {
@@ -1612,7 +1616,7 @@ window.loadCareerData = async function() {
         if (r.updatedAt) {
           const dt = r.updatedAt.toDate();
           updEl.textContent = `해당 데이터는 ${dt.getMonth()+1}월 ${dt.getDate()}일 업데이트된 자료를 기준으로 합니다`;
-          updEl.style.display = 'block';
+          if (updWrap) updWrap.style.display = 'flex';
         }
       });
     }
