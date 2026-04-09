@@ -469,6 +469,7 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
         <div class="section-title">상담 관리 패널</div>
         <div class="section-sub" id="teacher-greeting-sub"></div>
       </div>
+      <div id="booking-period-banner-teacher" style="font-size:13px;font-weight:500;padding:10px 14px;border-radius:8px;margin-bottom:1rem;border:1px solid #e0e0e0;text-align:center;background:#f5f5f5;color:#757575;display:none;"></div>
       <div class="teacher-tabs">
         <button class="t-tab-btn active" data-tab="tab-schedule" onclick="switchTeacherTab(this)">상담 일정 설정</button>
         <button class="t-tab-btn"        data-tab="tab-approval" onclick="switchTeacherTab(this)">예약 승인 관리</button>
@@ -1017,6 +1018,7 @@ window.showSection = function(key) {
       document.getElementById('booking-teacher-view').classList.add('active');
       document.getElementById('teacher-greeting-sub').textContent =
         (TEACHERS[currentUser?.email] || currentUser?.displayName || '선생님') + ' 환영합니다.';
+      loadAndApplyBookingPeriod();
       subscribeTeacherCal();
       subscribeTeacherApprovals();
     } else {
@@ -1129,18 +1131,23 @@ async function loadAndApplyBookingPeriod() {
 }
 
 function updateBookingPeriodBanner() {
-  const banner = document.getElementById('booking-period-banner');
-  if (!banner) return;
-  banner.style.display = 'block';
-  if (_bookingPeriod) {
-    const s = dateLabel(_bookingPeriod.startDate);
-    const e = dateLabel(_bookingPeriod.endDate);
-    banner.innerHTML = `📅 현재 상담신청 가능 기간은 <strong>${s} ~ ${e}</strong> 입니다`;
-    banner.style.cssText += ';background:#E8F5E9;color:#1B5E20;border-color:#4CAF50;';
-  } else {
-    banner.innerHTML = '현재는 상담 신청 기간이 아닙니다';
-    banner.style.cssText += ';background:#f5f5f5;color:#757575;border-color:#e0e0e0;';
-  }
+  const banners = [
+    document.getElementById('booking-period-banner'),
+    document.getElementById('booking-period-banner-teacher'),
+  ];
+  banners.forEach(banner => {
+    if (!banner) return;
+    banner.style.display = 'block';
+    if (_bookingPeriod) {
+      const s = dateLabel(_bookingPeriod.startDate);
+      const e = dateLabel(_bookingPeriod.endDate);
+      banner.innerHTML = `📅 현재 상담신청 가능 기간은 <strong>${s} ~ ${e}</strong> 입니다`;
+      banner.style.cssText += ';background:#E8F5E9;color:#1B5E20;border-color:#4CAF50;';
+    } else {
+      banner.innerHTML = '현재는 상담 신청 기간이 아닙니다';
+      banner.style.cssText += ';background:#f5f5f5;color:#757575;border-color:#e0e0e0;';
+    }
+  });
 }
 
 function dateLabel(dateStr) {
