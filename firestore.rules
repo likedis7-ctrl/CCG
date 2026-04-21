@@ -115,6 +115,20 @@ service cloud.firestore {
       allow write: if isVeritasEditor();
     }
 
+    // VERITAS CNSA PDF 아티클
+    match /veritasArticles/{articleId} {
+      allow read: if isCNSA();
+      allow create: if isVeritasEditor();
+      allow delete: if isVeritasEditor();
+    }
+
+    // VERITAS CNSA 유튜브 영상
+    match /veritasVideos/{videoId} {
+      allow read: if isCNSA();
+      allow create: if isVeritasEditor();
+      allow delete: if isVeritasEditor();
+    }
+
     // 전역 설정 (clubWriting, veritasEditors 등)
     match /settings/{settingId} {
       allow read: if isCNSA();

@@ -205,6 +205,37 @@ main { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem 3rem; }
 .post-meta { font-size: 12px; color: var(--text-muted); }
 .no-data-alert { padding: 3rem; text-align: center; font-size: 14px; color: var(--text-muted); background: var(--white); border: 0.5px dashed rgba(11,36,71,0.3); border-radius: 12px; }
 
+/* ── VERITAS 서브탭 ── */
+.veritas-tabs { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 1.5rem; border-bottom: 2px solid var(--border); padding-bottom: 0; }
+.vtab { background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -2px; padding: 0.65rem 0.9rem; font-size: 13px; font-family: var(--font-body); color: var(--text-muted); cursor: pointer; transition: color 0.15s; white-space: nowrap; }
+.vtab:hover { color: var(--navy); }
+.vtab.active { color: var(--navy); font-weight: 500; border-bottom-color: var(--accent); }
+.vtab-content { display: none; }
+.vtab-content.active { display: block; }
+.vtab-header-actions { display: flex; justify-content: flex-end; margin-bottom: 1rem; }
+.vtab-article-list { display: flex; flex-direction: column; gap: 0.75rem; }
+.vtab-article-card { background: var(--white); border: 0.5px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; display: flex; align-items: center; gap: 1rem; transition: all 0.2s; }
+.vtab-article-card:hover { border-color: var(--navy); box-shadow: 0 2px 8px rgba(11,36,71,0.08); }
+.vtab-article-title { font-size: 14px; font-weight: 500; color: var(--navy); margin-bottom: 4px; }
+.vtab-article-meta { font-size: 12px; color: var(--text-muted); }
+.vtab-article-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.vtab-video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
+.vtab-video-card { background: var(--white); border: 0.5px solid var(--border); border-radius: 12px; overflow: hidden; cursor: pointer; transition: all 0.2s; }
+.vtab-video-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(11,36,71,0.1); border-color: var(--navy); }
+.vtab-video-thumb { width: 100%; aspect-ratio: 16/9; background: var(--navy); position: relative; overflow: hidden; }
+.vtab-video-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.vtab-video-play-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); }
+.vtab-video-play-overlay::after { content: '▶'; font-size: 28px; color: white; opacity: 0.9; text-shadow: 0 2px 6px rgba(0,0,0,0.5); }
+.vtab-video-body { padding: 0.85rem 1rem; }
+.vtab-video-title { font-size: 14px; font-weight: 500; color: var(--navy); margin-bottom: 4px; line-height: 1.4; }
+.vtab-video-meta { font-size: 12px; color: var(--text-muted); display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.vtab-viewer-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.vtab-back-btn { padding: 0.4rem 0.75rem; border: 0.5px solid var(--border); border-radius: 6px; font-size: 12px; cursor: pointer; background: var(--white); color: var(--text); font-family: var(--font-body); transition: background 0.15s; flex-shrink: 0; }
+.vtab-back-btn:hover { background: var(--bg); }
+.vtab-viewer-title { font-size: 15px; font-weight: 500; color: var(--navy); flex: 1; min-width: 0; }
+.vtab-yt-wrap { position: relative; width: 100%; padding-bottom: 56.25%; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
+.vtab-yt-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: none; }
+
 /* ── 관리자 ── */
 .admin-warning { background: #FFF8E1; border: 0.5px solid #FFD54F; border-radius: 8px; padding: 0.75rem 1rem; font-size: 12px; color: #E65100; margin-bottom: 1.5rem; }
 .admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
@@ -297,6 +328,24 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
 .full-modal-close { background: none; border: 1px solid rgba(255,255,255,0.3); color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-family: var(--font-body); font-size: 14px; }
 .full-modal-body { flex: 1; overflow-y: auto; padding: 2rem; max-width: 900px; margin: 0 auto; width: 100%; }
 .full-modal-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--border); display: flex; gap: 0.75rem; justify-content: flex-end; flex-shrink: 0; }
+
+/* ── 아티클 보기 모달 (센터 다이얼로그) ── */
+#article-view-modal {
+  background: rgba(0,0,0,0.5) !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+#article-view-modal > .full-modal-inner {
+  background: var(--white); border-radius: 12px;
+  width: min(760px, 94vw) !important;
+  max-height: 88vh !important;
+  display: flex; flex-direction: column; overflow: hidden;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.28);
+  flex-shrink: 0;
+}
+#article-view-modal .full-modal-header { border-radius: 12px 12px 0 0; }
+#article-view-modal .full-modal-body { max-width: 100% !important; margin: 0 !important; }
+#article-view-modal .full-modal-footer { border-radius: 0 0 12px 12px; }
 
 .article-meta { font-size: 13px; color: var(--text-muted); margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
 
@@ -628,41 +677,181 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
         <div class="section-title">VERITAS CNSA</div>
         <div class="section-sub">진로진학 소식지 베리타스 큰사</div>
       </div>
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+    </div>
+
+    <!-- 서브메뉴 탭 -->
+    <div class="veritas-tabs">
+      <button class="vtab active" data-tab="column"   onclick="showVeritasTab('column')">입시칼럼</button>
+      <button class="vtab"        data-tab="career"   onclick="showVeritasTab('career')">진로</button>
+      <button class="vtab"        data-tab="grad"     onclick="showVeritasTab('grad')">졸업생 인터뷰</button>
+      <button class="vtab"        data-tab="current"  onclick="showVeritasTab('current')">현역 인터뷰</button>
+      <button class="vtab"        data-tab="univ"     onclick="showVeritasTab('univ')">대학 및 학과 소개</button>
+      <button class="vtab"        data-tab="special"  onclick="showVeritasTab('special')">진진스 특집기사</button>
+      <button class="vtab"        data-tab="external" onclick="showVeritasTab('external')">외부필진</button>
+      <button class="vtab"        data-tab="archive"  onclick="showVeritasTab('archive')">과월호</button>
+    </div>
+
+    <!-- 입시칼럼 -->
+    <div class="vtab-content active" id="vtab-column">
+      <div class="vtab-header-actions">
+        <button id="vtab-column-upload-btn" class="btn-upload" style="display:none;" onclick="openArticleUpload('column')">📄 글 업로드</button>
+      </div>
+      <div id="vtab-column-list" class="vtab-article-list"></div>
+      <div id="vtab-column-viewer" style="display:none;">
+        <div class="vtab-viewer-header">
+          <button class="vtab-back-btn" onclick="closeArticleViewer('column')">← 목록으로</button>
+          <div class="vtab-viewer-title" id="vtab-column-viewer-title"></div>
+          <button class="btn-download" style="padding:0.35rem 0.9rem;font-size:12px;" id="vtab-column-dl-btn" onclick="downloadArticle('column')">⬇ 다운로드</button>
+        </div>
+        <div id="vtab-column-iframe-loading" style="width:100%;height:78vh;border-radius:10px;background:#f0f4f8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--text-muted);font-size:14px;">
+          <div style="width:36px;height:36px;border:3px solid var(--accent);border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;"></div>PDF 뷰어 로딩 중...
+        </div>
+        <iframe id="vtab-column-iframe" style="width:100%;height:78vh;border:none;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,0.08);display:none;" src="" onload="onArticleIframeLoad('column')"></iframe>
+      </div>
+    </div>
+
+    <!-- 진로 -->
+    <div class="vtab-content" id="vtab-career">
+      <div class="vtab-header-actions">
+        <button id="vtab-career-upload-btn" class="btn-upload" style="display:none;" onclick="openArticleUpload('career')">📄 글 업로드</button>
+      </div>
+      <div id="vtab-career-list" class="vtab-article-list"></div>
+      <div id="vtab-career-viewer" style="display:none;">
+        <div class="vtab-viewer-header">
+          <button class="vtab-back-btn" onclick="closeArticleViewer('career')">← 목록으로</button>
+          <div class="vtab-viewer-title" id="vtab-career-viewer-title"></div>
+          <button class="btn-download" style="padding:0.35rem 0.9rem;font-size:12px;" id="vtab-career-dl-btn" onclick="downloadArticle('career')">⬇ 다운로드</button>
+        </div>
+        <div id="vtab-career-iframe-loading" style="width:100%;height:78vh;border-radius:10px;background:#f0f4f8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--text-muted);font-size:14px;">
+          <div style="width:36px;height:36px;border:3px solid var(--accent);border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;"></div>PDF 뷰어 로딩 중...
+        </div>
+        <iframe id="vtab-career-iframe" style="width:100%;height:78vh;border:none;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,0.08);display:none;" src="" onload="onArticleIframeLoad('career')"></iframe>
+      </div>
+    </div>
+
+    <!-- 졸업생 인터뷰 -->
+    <div class="vtab-content" id="vtab-grad">
+      <div class="vtab-header-actions">
+        <button id="vtab-grad-upload-btn" class="btn-upload" style="display:none;" onclick="openVideoAdd('grad')">🎬 영상 추가</button>
+      </div>
+      <div id="vtab-grad-grid" class="vtab-video-grid"></div>
+      <div id="vtab-grad-player" style="display:none;">
+        <div class="vtab-viewer-header">
+          <button class="vtab-back-btn" onclick="closeVideoPlayer('grad')">← 목록으로</button>
+          <div class="vtab-viewer-title" id="vtab-grad-player-title"></div>
+        </div>
+        <div class="vtab-yt-wrap"><iframe id="vtab-grad-yt-iframe" src="" allowfullscreen></iframe></div>
+      </div>
+    </div>
+
+    <!-- 현역 인터뷰 -->
+    <div class="vtab-content" id="vtab-current">
+      <div class="vtab-header-actions">
+        <button id="vtab-current-upload-btn" class="btn-upload" style="display:none;" onclick="openVideoAdd('current')">🎬 영상 추가</button>
+      </div>
+      <div id="vtab-current-grid" class="vtab-video-grid"></div>
+      <div id="vtab-current-player" style="display:none;">
+        <div class="vtab-viewer-header">
+          <button class="vtab-back-btn" onclick="closeVideoPlayer('current')">← 목록으로</button>
+          <div class="vtab-viewer-title" id="vtab-current-player-title"></div>
+        </div>
+        <div class="vtab-yt-wrap"><iframe id="vtab-current-yt-iframe" src="" allowfullscreen></iframe></div>
+      </div>
+    </div>
+
+    <!-- 대학 및 학과 소개 -->
+    <div class="vtab-content" id="vtab-univ">
+      <div class="vtab-header-actions">
+        <button id="vtab-univ-upload-btn" class="btn-upload" style="display:none;" onclick="openArticleUpload('univ')">📄 글 업로드</button>
+      </div>
+      <div id="vtab-univ-list" class="vtab-article-list"></div>
+      <div id="vtab-univ-viewer" style="display:none;">
+        <div class="vtab-viewer-header">
+          <button class="vtab-back-btn" onclick="closeArticleViewer('univ')">← 목록으로</button>
+          <div class="vtab-viewer-title" id="vtab-univ-viewer-title"></div>
+          <button class="btn-download" style="padding:0.35rem 0.9rem;font-size:12px;" id="vtab-univ-dl-btn" onclick="downloadArticle('univ')">⬇ 다운로드</button>
+        </div>
+        <div id="vtab-univ-iframe-loading" style="width:100%;height:78vh;border-radius:10px;background:#f0f4f8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--text-muted);font-size:14px;">
+          <div style="width:36px;height:36px;border:3px solid var(--accent);border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;"></div>PDF 뷰어 로딩 중...
+        </div>
+        <iframe id="vtab-univ-iframe" style="width:100%;height:78vh;border:none;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,0.08);display:none;" src="" onload="onArticleIframeLoad('univ')"></iframe>
+      </div>
+    </div>
+
+    <!-- 진진스 특집기사 -->
+    <div class="vtab-content" id="vtab-special">
+      <div class="vtab-header-actions">
+        <button id="vtab-special-upload-btn" class="btn-upload" style="display:none;" onclick="openArticleUpload('special')">📄 글 업로드</button>
+      </div>
+      <div id="vtab-special-list" class="vtab-article-list"></div>
+      <div id="vtab-special-viewer" style="display:none;">
+        <div class="vtab-viewer-header">
+          <button class="vtab-back-btn" onclick="closeArticleViewer('special')">← 목록으로</button>
+          <div class="vtab-viewer-title" id="vtab-special-viewer-title"></div>
+          <button class="btn-download" style="padding:0.35rem 0.9rem;font-size:12px;" id="vtab-special-dl-btn" onclick="downloadArticle('special')">⬇ 다운로드</button>
+        </div>
+        <div id="vtab-special-iframe-loading" style="width:100%;height:78vh;border-radius:10px;background:#f0f4f8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--text-muted);font-size:14px;">
+          <div style="width:36px;height:36px;border:3px solid var(--accent);border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;"></div>PDF 뷰어 로딩 중...
+        </div>
+        <iframe id="vtab-special-iframe" style="width:100%;height:78vh;border:none;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,0.08);display:none;" src="" onload="onArticleIframeLoad('special')"></iframe>
+      </div>
+    </div>
+
+    <!-- 외부필진 -->
+    <div class="vtab-content" id="vtab-external">
+      <div class="vtab-header-actions">
+        <button id="vtab-external-upload-btn" class="btn-upload" style="display:none;" onclick="openArticleUpload('external')">📄 글 업로드</button>
+      </div>
+      <div id="vtab-external-list" class="vtab-article-list"></div>
+      <div id="vtab-external-viewer" style="display:none;">
+        <div class="vtab-viewer-header">
+          <button class="vtab-back-btn" onclick="closeArticleViewer('external')">← 목록으로</button>
+          <div class="vtab-viewer-title" id="vtab-external-viewer-title"></div>
+          <button class="btn-download" style="padding:0.35rem 0.9rem;font-size:12px;" id="vtab-external-dl-btn" onclick="downloadArticle('external')">⬇ 다운로드</button>
+        </div>
+        <div id="vtab-external-iframe-loading" style="width:100%;height:78vh;border-radius:10px;background:#f0f4f8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--text-muted);font-size:14px;">
+          <div style="width:36px;height:36px;border:3px solid var(--accent);border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;"></div>PDF 뷰어 로딩 중...
+        </div>
+        <iframe id="vtab-external-iframe" style="width:100%;height:78vh;border:none;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,0.08);display:none;" src="" onload="onArticleIframeLoad('external')"></iframe>
+      </div>
+    </div>
+
+    <!-- 과월호 (기존 기능) -->
+    <div class="vtab-content" id="vtab-archive">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:1rem;">
         <select id="veritas-issue-select" onchange="selectVeritasIssue(this.value)"
           style="border:0.5px solid var(--border);border-radius:6px;padding:4px 10px;font-size:13px;font-family:var(--font-body);background:var(--white);color:var(--navy);outline:none;cursor:pointer;">
         </select>
-        <button id="veritas-upload-btn"   class="btn-upload"    style="display:none;padding:0.45rem 1rem;font-size:13px;" onclick="openVeritasUpload(false)">📄 PDF 업로드</button>
-        <button id="veritas-reupload-btn" class="btn-download"  style="display:none;padding:0.45rem 1rem;font-size:13px;" onclick="openVeritasUpload(true)">🔄 재업로드</button>
-        <button id="veritas-delete-btn"   class="btn-slot-del"  style="display:none;width:auto;padding:0.45rem 1rem;font-size:13px;" onclick="deleteVeritasIssue()">🗑 삭제</button>
+        <button id="veritas-upload-btn"   class="btn-upload"   style="display:none;padding:0.45rem 1rem;font-size:13px;" onclick="openVeritasUpload(false)">📄 PDF 업로드</button>
+        <button id="veritas-reupload-btn" class="btn-download" style="display:none;padding:0.45rem 1rem;font-size:13px;" onclick="openVeritasUpload(true)">🔄 재업로드</button>
+        <button id="veritas-delete-btn"   class="btn-slot-del" style="display:none;width:auto;padding:0.45rem 1rem;font-size:13px;" onclick="deleteVeritasIssue()">🗑 삭제</button>
       </div>
-    </div>
-    <div id="veritas-empty"       class="no-data-alert" style="display:none;">아직 업로드된 소식지가 없습니다.</div>
-    <div id="veritas-viewer-wrap" style="display:none;">
-      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:0.75rem;">
-        <div id="veritas-issue-label" style="font-size:13px;color:var(--text-muted);"></div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;">
-          <button id="veritas-dl-btn"  class="btn-download" style="padding:0.35rem 0.9rem;font-size:12px;" onclick="downloadVeritas(1)">⬇ 다운로드</button>
-          <button id="veritas-dl2-btn" class="btn-download" style="padding:0.35rem 0.9rem;font-size:12px;display:none;" onclick="downloadVeritas(2)">⬇ 파트2 다운로드</button>
-          <button class="btn-download" style="padding:0.35rem 0.9rem;font-size:12px;background:rgba(11,36,71,0.07);color:var(--navy-mid);" onclick="retryVeritasIframe()">↺ 뷰어 새로고침</button>
+      <div id="veritas-empty" class="no-data-alert" style="display:none;">아직 업로드된 소식지가 없습니다.</div>
+      <div id="veritas-viewer-wrap" style="display:none;">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:0.75rem;">
+          <div id="veritas-issue-label" style="font-size:13px;color:var(--text-muted);"></div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button id="veritas-dl-btn"  class="btn-download" style="padding:0.35rem 0.9rem;font-size:12px;" onclick="downloadVeritas(1)">⬇ 다운로드</button>
+            <button id="veritas-dl2-btn" class="btn-download" style="padding:0.35rem 0.9rem;font-size:12px;display:none;" onclick="downloadVeritas(2)">⬇ 파트2 다운로드</button>
+            <button class="btn-download" style="padding:0.35rem 0.9rem;font-size:12px;background:rgba(11,36,71,0.07);color:var(--navy-mid);" onclick="retryVeritasIframe()">↺ 뷰어 새로고침</button>
+          </div>
+        </div>
+        <div id="veritas-iframe-loading" style="width:100%;height:78vh;border-radius:10px;background:#f0f4f8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--text-muted);font-size:14px;">
+          <div style="width:36px;height:36px;border:3px solid var(--accent);border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;"></div>PDF 뷰어 로딩 중...
+        </div>
+        <iframe id="veritas-iframe" style="width:100%;height:78vh;border:none;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,0.08);display:none;" src="" onload="onVeritasIframeLoad(1)"></iframe>
+        <div id="veritas-continue-wrap" style="display:none;text-align:center;padding:2rem 0;">
+          <button onclick="showVeritasPart2()" style="padding:1rem 3rem;background:var(--navy);color:white;border:none;border-radius:12px;font-size:16px;font-family:var(--font-body);font-weight:500;cursor:pointer;box-shadow:0 4px 16px rgba(11,36,71,0.2);transition:background 0.15s;" onmouseover="this.style.background='var(--navy-mid)'" onmouseout="this.style.background='var(--navy)'">📄 계속 보기</button>
+        </div>
+        <div id="veritas-iframe2-wrap" style="display:none;margin-top:0.5rem;">
+          <div id="veritas-iframe2-loading" style="width:100%;height:78vh;border-radius:10px;background:#f0f4f8;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--text-muted);font-size:14px;">
+            <div style="width:36px;height:36px;border:3px solid var(--accent);border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;"></div>PDF 뷰어 로딩 중...
+          </div>
+          <iframe id="veritas-iframe2" style="width:100%;height:78vh;border:none;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,0.08);" src="" onload="onVeritasIframeLoad(2)"></iframe>
         </div>
       </div>
-      <div id="veritas-iframe-loading" style="width:100%;height:78vh;border-radius:10px;background:#f0f4f8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--text-muted);font-size:14px;">
-        <div style="width:36px;height:36px;border:3px solid var(--accent);border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
-        PDF 뷰어 로딩 중...
-      </div>
-      <iframe id="veritas-iframe" style="width:100%;height:78vh;border:none;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,0.08);display:none;" src="" onload="onVeritasIframeLoad(1)"></iframe>
-      <div id="veritas-continue-wrap" style="display:none;text-align:center;padding:2rem 0;">
-        <button onclick="showVeritasPart2()" style="padding:1rem 3rem;background:var(--navy);color:white;border:none;border-radius:12px;font-size:16px;font-family:var(--font-body);font-weight:500;cursor:pointer;box-shadow:0 4px 16px rgba(11,36,71,0.2);transition:background 0.15s;" onmouseover="this.style.background='var(--navy-mid)'" onmouseout="this.style.background='var(--navy)'">📄 계속 보기</button>
-      </div>
-      <div id="veritas-iframe2-wrap" style="display:none;margin-top:0.5rem;">
-        <div id="veritas-iframe2-loading" style="width:100%;height:78vh;border-radius:10px;background:#f0f4f8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--text-muted);font-size:14px;display:none;">
-          <div style="width:36px;height:36px;border:3px solid var(--accent);border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
-          PDF 뷰어 로딩 중...
-        </div>
-        <iframe id="veritas-iframe2" style="width:100%;height:78vh;border:none;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,0.08);" src="" onload="onVeritasIframeLoad(2)"></iframe>
-      </div>
     </div>
+
   </div>
 
   <!-- 6. 관리자 -->
@@ -802,6 +991,47 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
   </div>
 </div>
 
+<!-- 아티클 PDF 업로드 모달 -->
+<div class="modal-bg" id="article-upload-modal">
+  <div class="modal" style="max-width:380px;text-align:left;">
+    <div class="modal-icon">📄</div>
+    <h3 style="font-family:var(--font-heading);font-size:17px;margin-bottom:0.75rem;color:var(--navy);">자료 업로드</h3>
+    <div style="margin-bottom:1rem;">
+      <label style="display:block;font-size:12px;color:var(--text-muted);margin-bottom:5px;font-weight:500;">제목</label>
+      <input type="text" id="article-upload-title-input" placeholder="제목을 입력하세요"
+        style="width:100%;padding:0.5rem 0.75rem;border:0.5px solid var(--border);border-radius:8px;font-size:13px;font-family:var(--font-body);outline:none;background:var(--bg);"
+        onkeydown="if(event.key==='Enter')confirmArticleUpload()">
+    </div>
+    <input type="file" id="article-upload-file-input" class="file-input" accept=".pdf" onchange="handleArticleFileSelect(this)">
+    <div style="display:flex;gap:8px;">
+      <button class="btn-upload" style="flex:1;padding:0.6rem;" onclick="confirmArticleUpload()">PDF 파일 선택</button>
+      <button class="modal-ok" style="background:none;border:0.5px solid var(--border);color:var(--text);" onclick="closeArticleUpload()">취소</button>
+    </div>
+  </div>
+</div>
+
+<!-- 유튜브 영상 추가 모달 -->
+<div class="modal-bg" id="video-add-modal">
+  <div class="modal" style="max-width:400px;text-align:left;">
+    <div class="modal-icon">🎬</div>
+    <h3 style="font-family:var(--font-heading);font-size:17px;margin-bottom:0.75rem;color:var(--navy);">유튜브 영상 추가</h3>
+    <div style="margin-bottom:1rem;">
+      <label style="display:block;font-size:12px;color:var(--text-muted);margin-bottom:5px;font-weight:500;">제목</label>
+      <input type="text" id="video-add-title-input" placeholder="영상 제목을 입력하세요"
+        style="width:100%;padding:0.5rem 0.75rem;border:0.5px solid var(--border);border-radius:8px;font-size:13px;font-family:var(--font-body);outline:none;background:var(--bg);">
+    </div>
+    <div style="margin-bottom:1.25rem;">
+      <label style="display:block;font-size:12px;color:var(--text-muted);margin-bottom:5px;font-weight:500;">유튜브 URL</label>
+      <input type="text" id="video-add-url-input" placeholder="https://www.youtube.com/watch?v=..."
+        style="width:100%;padding:0.5rem 0.75rem;border:0.5px solid var(--border);border-radius:8px;font-size:13px;font-family:var(--font-body);outline:none;background:var(--bg);">
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn-upload" style="flex:1;padding:0.6rem;" onclick="confirmVideoAdd()">추가</button>
+      <button class="modal-ok" style="background:none;border:0.5px solid var(--border);color:var(--text);" onclick="closeVideoAdd()">취소</button>
+    </div>
+  </div>
+</div>
+
 <!-- 푸터 -->
 <footer>
   <div class="footer-inner">
@@ -854,23 +1084,25 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
   </div>
 </div>
 
-<!-- 글 보기 풀스크린 모달 -->
-<div class="full-modal" id="article-view-modal">
-  <div class="full-modal-header">
-    <span class="full-modal-title" id="article-view-club-name"></span>
-    <button class="full-modal-close" onclick="closeArticleView()">✕ 닫기</button>
-  </div>
-  <div class="full-modal-body">
-    <h1 id="article-view-title" style="font-family:var(--font-heading);font-size:26px;color:var(--navy);margin-bottom:1rem;"></h1>
-    <div class="article-meta" id="article-view-meta"></div>
-    <div id="article-view-like-bar" style="margin-bottom:1.25rem;">
-      <button id="article-like-btn" class="like-btn" onclick="toggleArticleLike()">🤍 0</button>
+<!-- 글 보기 모달 (센터 다이얼로그) -->
+<div class="full-modal" id="article-view-modal" onclick="if(event.target===this)closeArticleView()">
+  <div class="full-modal-inner">
+    <div class="full-modal-header">
+      <span class="full-modal-title" id="article-view-club-name"></span>
+      <button class="full-modal-close" onclick="closeArticleView()">✕ 닫기</button>
     </div>
-    <div class="ck-content" id="article-view-content"></div>
-  </div>
-  <div class="full-modal-footer" id="article-view-footer" style="display:none;">
-    <button class="btn-slot-del" style="width:auto;padding:0.6rem 1.5rem;" onclick="deleteCurrentArticle()">삭제</button>
-    <button class="btn-slot-save" style="width:auto;padding:0.6rem 1.5rem;" onclick="editCurrentArticle()">수정</button>
+    <div class="full-modal-body">
+      <h1 id="article-view-title" style="font-family:var(--font-heading);font-size:26px;color:var(--navy);margin-bottom:1rem;"></h1>
+      <div class="article-meta" id="article-view-meta"></div>
+      <div id="article-view-like-bar" style="margin-bottom:1.25rem;">
+        <button id="article-like-btn" class="like-btn" onclick="toggleArticleLike()">🤍 0</button>
+      </div>
+      <div class="ck-content" id="article-view-content"></div>
+    </div>
+    <div class="full-modal-footer" id="article-view-footer" style="display:none;">
+      <button class="btn-slot-del" style="width:auto;padding:0.6rem 1.5rem;" onclick="deleteCurrentArticle()">삭제</button>
+      <button class="btn-slot-save" style="width:auto;padding:0.6rem 1.5rem;" onclick="editCurrentArticle()">수정</button>
+    </div>
   </div>
 </div>
 
@@ -2477,12 +2709,20 @@ window.uploadClubExcel = async function(input) {
 ══════════════════════════════════════ */
 let isVeritasEditor  = false;
 let veritasIssues    = [];
-let veritasReupload  = false; // true면 재업로드 모드
-// 첫 번째 파일 업로드 후 임시 저장
+let veritasReupload  = false;
 let _vPendingYear  = null;
 let _vPendingMonth = null;
 let _vPendingDocId = null;
 let _vPendingUrl1  = null;
+
+const VTAB_PDF_CATS   = ['column','career','univ','special','external'];
+const VTAB_VIDEO_CATS = ['grad','current'];
+let _currentVeritasTab = 'column';
+let _vtabLoaded = new Set();
+
+function _escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 
 async function initVeritasEditor() {
   if (currentRole === 'admin') { isVeritasEditor = true; return; }
@@ -2494,13 +2734,50 @@ async function initVeritasEditor() {
   } catch(e) { isVeritasEditor = false; }
 }
 
+function _updateVtabEditorBtns() {
+  VTAB_PDF_CATS.forEach(cat => {
+    const btn = document.getElementById(`vtab-${cat}-upload-btn`);
+    if (btn) btn.style.display = isVeritasEditor ? 'inline-block' : 'none';
+  });
+  VTAB_VIDEO_CATS.forEach(cat => {
+    const btn = document.getElementById(`vtab-${cat}-upload-btn`);
+    if (btn) btn.style.display = isVeritasEditor ? 'inline-block' : 'none';
+  });
+}
+
 async function loadVeritasPage() {
   await initVeritasEditor();
+  _vtabLoaded.clear();
+  _updateVtabEditorBtns();
+  // 현재 활성 탭 로드
+  await _loadVeritasTab(_currentVeritasTab);
+  _vtabLoaded.add(_currentVeritasTab);
+}
 
-  // 편집자 버튼 표시
-  document.getElementById('veritas-upload-btn').style.display   = isVeritasEditor ? 'inline-block' : 'none';
+async function _loadVeritasTab(tab) {
+  if (tab === 'archive') {
+    await _loadVeritasArchive();
+  } else if (VTAB_PDF_CATS.includes(tab)) {
+    await loadArticles(tab);
+  } else if (VTAB_VIDEO_CATS.includes(tab)) {
+    await loadVideos(tab);
+  }
+}
 
-  // 모든 호수 로드
+window.showVeritasTab = function(tab) {
+  document.querySelectorAll('.vtab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.vtab-content').forEach(c => c.classList.toggle('active', c.id === 'vtab-' + tab));
+  _currentVeritasTab = tab;
+  if (!_vtabLoaded.has(tab)) {
+    _vtabLoaded.add(tab);
+    _loadVeritasTab(tab);
+  }
+};
+
+/* ── 과월호 (기존 기능) ── */
+async function _loadVeritasArchive() {
+  document.getElementById('veritas-upload-btn').style.display = isVeritasEditor ? 'inline-block' : 'none';
+
   const snap = await getDocs(query(collection(db,'veritasIssues'), orderBy('year','desc'), orderBy('month','desc')));
   veritasIssues = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
@@ -2522,6 +2799,267 @@ async function loadVeritasPage() {
   });
   selectVeritasIssue(veritasIssues[0].id);
 }
+
+/* ── PDF 아티클 ── */
+let _articleUploadCat   = null;
+let _articleUploadTitle = null;
+
+window.openArticleUpload = function(cat) {
+  _articleUploadCat = cat;
+  document.getElementById('article-upload-title-input').value = '';
+  document.getElementById('article-upload-file-input').value  = '';
+  document.getElementById('article-upload-modal').classList.add('open');
+};
+
+window.closeArticleUpload = function() {
+  document.getElementById('article-upload-modal').classList.remove('open');
+};
+
+window.confirmArticleUpload = function() {
+  const title = document.getElementById('article-upload-title-input').value.trim();
+  if (!title) { showToast('제목을 입력해주세요.'); return; }
+  _articleUploadTitle = title;
+  document.getElementById('article-upload-file-input').click();
+};
+
+window.handleArticleFileSelect = async function(input) {
+  if (!input.files[0]) return;
+  const file = input.files[0];
+  if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+    showToast('PDF 파일만 업로드할 수 있습니다.'); input.value = ''; return;
+  }
+  if (!checkPdfSize(file)) { input.value = ''; return; }
+  closeArticleUpload();
+  showToast('업로드 중...');
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', 'ccg_preset');
+    formData.append('folder', `ccg/veritas/${_articleUploadCat}`);
+    const res  = await fetch('https://api.cloudinary.com/v1_1/dl0d1gakg/raw/upload', { method:'POST', body:formData });
+    const json = await res.json();
+    if (!json.secure_url) throw new Error(json.error?.message || '업로드 실패');
+    await addDoc(collection(db,'veritasArticles'), {
+      category: _articleUploadCat,
+      title: _articleUploadTitle,
+      url: json.secure_url,
+      uploaderEmail: currentUser.email,
+      createdAt: Timestamp.now(),
+    });
+    showToast('업로드 완료!');
+    _vtabLoaded.delete(_articleUploadCat);
+    await loadArticles(_articleUploadCat);
+    _vtabLoaded.add(_articleUploadCat);
+  } catch(e) { showToast('업로드 실패: ' + e.message); }
+};
+
+async function loadArticles(cat) {
+  const listEl = document.getElementById(`vtab-${cat}-list`);
+  if (!listEl) return;
+  listEl.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-muted);font-size:13px;">로딩 중...</div>';
+  try {
+    const snap = await getDocs(query(collection(db,'veritasArticles'), where('category','==',cat), orderBy('createdAt','desc')));
+    if (snap.empty) {
+      listEl.innerHTML = '<div class="no-data-alert">아직 등록된 자료가 없습니다.</div>';
+      return;
+    }
+    listEl.innerHTML = '';
+    snap.docs.forEach(d => {
+      const a    = { id: d.id, ...d.data() };
+      const date = a.createdAt?.toDate ? a.createdAt.toDate().toLocaleDateString('ko-KR') : '';
+      const safeUrl   = _escHtml(a.url);
+      const safeTitle = _escHtml(a.title);
+      const card = document.createElement('div');
+      card.className = 'vtab-article-card';
+      card.innerHTML = `
+        <div style="flex:1;min-width:0;">
+          <div class="vtab-article-title">${safeTitle}</div>
+          <div class="vtab-article-meta">${date} · ${_escHtml(a.uploaderEmail)}</div>
+        </div>
+        <div class="vtab-article-actions">
+          <button class="btn-download" style="padding:0.3rem 0.75rem;font-size:12px;">📄 보기</button>
+          ${isVeritasEditor ? `<button class="btn-slot-del" data-id="${a.id}" style="width:auto;padding:0.3rem 0.75rem;font-size:12px;">🗑</button>` : ''}
+        </div>`;
+      card.querySelector('.btn-download').addEventListener('click', e => {
+        e.stopPropagation();
+        openArticleViewer(cat, a.url, a.title);
+      });
+      if (isVeritasEditor) {
+        card.querySelector('.btn-slot-del').addEventListener('click', e => {
+          e.stopPropagation();
+          deleteArticle(cat, a.id);
+        });
+      }
+      listEl.appendChild(card);
+    });
+  } catch(e) {
+    listEl.innerHTML = `<div class="no-data-alert">로딩 실패: ${e.message}</div>`;
+  }
+}
+
+window.openArticleViewer = function(cat, url, title) {
+  const listEl    = document.getElementById(`vtab-${cat}-list`);
+  const hdrEl     = document.querySelector(`#vtab-${cat} .vtab-header-actions`);
+  const viewerEl  = document.getElementById(`vtab-${cat}-viewer`);
+  const titleEl   = document.getElementById(`vtab-${cat}-viewer-title`);
+  const dlBtn     = document.getElementById(`vtab-${cat}-dl-btn`);
+  const iframe    = document.getElementById(`vtab-${cat}-iframe`);
+  const loadingEl = document.getElementById(`vtab-${cat}-iframe-loading`);
+
+  listEl.style.display   = 'none';
+  if (hdrEl) hdrEl.style.display = 'none';
+  viewerEl.style.display = 'block';
+  titleEl.textContent    = title;
+  dlBtn.dataset.url      = url;
+  dlBtn.dataset.name     = `${title}.pdf`;
+  loadingEl.style.display = 'flex';
+  iframe.style.display    = 'none';
+  iframe.src = `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true&t=${Date.now()}`;
+};
+
+window.closeArticleViewer = function(cat) {
+  document.getElementById(`vtab-${cat}-viewer`).style.display = 'none';
+  document.getElementById(`vtab-${cat}-list`).style.display   = '';
+  const hdrEl = document.querySelector(`#vtab-${cat} .vtab-header-actions`);
+  if (hdrEl) hdrEl.style.display = '';
+};
+
+window.onArticleIframeLoad = function(cat) {
+  document.getElementById(`vtab-${cat}-iframe-loading`).style.display = 'none';
+  document.getElementById(`vtab-${cat}-iframe`).style.display = 'block';
+};
+
+window.downloadArticle = function(cat) {
+  const btn  = document.getElementById(`vtab-${cat}-dl-btn`);
+  const url  = btn.dataset.url;
+  const name = btn.dataset.name;
+  if (!url) return;
+  const a = document.createElement('a');
+  a.href = url; a.download = name; a.target = '_blank';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+};
+
+window.deleteArticle = async function(cat, id) {
+  if (!confirm('이 자료를 삭제하시겠습니까?')) return;
+  await deleteDoc(doc(db,'veritasArticles', id));
+  showToast('삭제되었습니다.');
+  _vtabLoaded.delete(cat);
+  await loadArticles(cat);
+  _vtabLoaded.add(cat);
+};
+
+/* ── 유튜브 영상 ── */
+let _videoAddCat = null;
+
+window.openVideoAdd = function(cat) {
+  _videoAddCat = cat;
+  document.getElementById('video-add-title-input').value = '';
+  document.getElementById('video-add-url-input').value   = '';
+  document.getElementById('video-add-modal').classList.add('open');
+};
+
+window.closeVideoAdd = function() {
+  document.getElementById('video-add-modal').classList.remove('open');
+};
+
+window.confirmVideoAdd = async function() {
+  const title  = document.getElementById('video-add-title-input').value.trim();
+  const urlVal = document.getElementById('video-add-url-input').value.trim();
+  if (!title)  { showToast('제목을 입력해주세요.'); return; }
+  if (!urlVal) { showToast('유튜브 URL을 입력해주세요.'); return; }
+  const ytId = _extractYouTubeId(urlVal);
+  if (!ytId) { showToast('올바른 유튜브 URL이 아닙니다.'); return; }
+  closeVideoAdd();
+  showToast('저장 중...');
+  try {
+    await addDoc(collection(db,'veritasVideos'), {
+      category: _videoAddCat,
+      title,
+      youtubeId: ytId,
+      uploaderEmail: currentUser.email,
+      createdAt: Timestamp.now(),
+    });
+    showToast('영상이 추가되었습니다!');
+    _vtabLoaded.delete(_videoAddCat);
+    await loadVideos(_videoAddCat);
+    _vtabLoaded.add(_videoAddCat);
+  } catch(e) { showToast('저장 실패: ' + e.message); }
+};
+
+function _extractYouTubeId(url) {
+  const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|v\/))([A-Za-z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+
+async function loadVideos(cat) {
+  const gridEl = document.getElementById(`vtab-${cat}-grid`);
+  if (!gridEl) return;
+  gridEl.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-muted);font-size:13px;">로딩 중...</div>';
+  try {
+    const snap = await getDocs(query(collection(db,'veritasVideos'), where('category','==',cat), orderBy('createdAt','desc')));
+    if (snap.empty) {
+      gridEl.innerHTML = '<div class="no-data-alert">아직 등록된 영상이 없습니다.</div>';
+      return;
+    }
+    gridEl.innerHTML = '';
+    snap.docs.forEach(d => {
+      const v    = { id: d.id, ...d.data() };
+      const date = v.createdAt?.toDate ? v.createdAt.toDate().toLocaleDateString('ko-KR') : '';
+      const card = document.createElement('div');
+      card.className = 'vtab-video-card';
+      card.innerHTML = `
+        <div class="vtab-video-thumb">
+          <img src="https://img.youtube.com/vi/${v.youtubeId}/mqdefault.jpg" alt="${_escHtml(v.title)}" onerror="this.style.display='none'">
+          <div class="vtab-video-play-overlay"></div>
+        </div>
+        <div class="vtab-video-body">
+          <div class="vtab-video-title">${_escHtml(v.title)}</div>
+          <div class="vtab-video-meta">
+            <span>${date}</span>
+            ${isVeritasEditor ? `<button class="btn-slot-del" data-id="${v.id}" style="width:auto;padding:2px 8px;font-size:11px;">🗑 삭제</button>` : ''}
+          </div>
+        </div>`;
+      card.addEventListener('click', () => openVideoPlayer(cat, v.youtubeId, v.title));
+      if (isVeritasEditor) {
+        card.querySelector('.btn-slot-del').addEventListener('click', e => {
+          e.stopPropagation();
+          deleteVideo(cat, v.id);
+        });
+      }
+      gridEl.appendChild(card);
+    });
+  } catch(e) {
+    gridEl.innerHTML = `<div class="no-data-alert">로딩 실패: ${e.message}</div>`;
+  }
+}
+
+window.openVideoPlayer = function(cat, ytId, title) {
+  const gridEl  = document.getElementById(`vtab-${cat}-grid`);
+  const hdrEl   = document.querySelector(`#vtab-${cat} .vtab-header-actions`);
+  const playerEl = document.getElementById(`vtab-${cat}-player`);
+  gridEl.style.display   = 'none';
+  if (hdrEl) hdrEl.style.display = 'none';
+  playerEl.style.display = 'block';
+  document.getElementById(`vtab-${cat}-player-title`).textContent = title;
+  document.getElementById(`vtab-${cat}-yt-iframe`).src = `https://www.youtube.com/embed/${ytId}?autoplay=1`;
+};
+
+window.closeVideoPlayer = function(cat) {
+  document.getElementById(`vtab-${cat}-yt-iframe`).src = '';
+  document.getElementById(`vtab-${cat}-player`).style.display = 'none';
+  document.getElementById(`vtab-${cat}-grid`).style.display   = '';
+  const hdrEl = document.querySelector(`#vtab-${cat} .vtab-header-actions`);
+  if (hdrEl) hdrEl.style.display = '';
+};
+
+window.deleteVideo = async function(cat, id) {
+  if (!confirm('이 영상을 삭제하시겠습니까?')) return;
+  await deleteDoc(doc(db,'veritasVideos', id));
+  showToast('삭제되었습니다.');
+  _vtabLoaded.delete(cat);
+  await loadVideos(cat);
+  _vtabLoaded.add(cat);
+};
 
 let _currentVeritasIssue = null;
 
@@ -2703,7 +3241,9 @@ window.skipVeritasUpload2 = async function() {
 async function _finishVeritasUpload() {
   const docId = _vPendingDocId;
   _vPendingYear = _vPendingMonth = _vPendingDocId = _vPendingUrl1 = null;
-  await loadVeritasPage();
+  _vtabLoaded.delete('archive');
+  await _loadVeritasArchive();
+  _vtabLoaded.add('archive');
   document.getElementById('veritas-issue-select').value = docId;
   selectVeritasIssue(docId);
 }
@@ -2715,7 +3255,9 @@ window.deleteVeritasIssue = async function() {
   if (!confirm(`${issue.year}년 ${issue.month}월호를 삭제하시겠습니까?`)) return;
   await deleteDoc(doc(db,'veritasIssues', selId));
   showToast('삭제되었습니다.');
-  await loadVeritasPage();
+  _vtabLoaded.delete('archive');
+  await _loadVeritasArchive();
+  _vtabLoaded.add('archive');
 };
 
 /* VERITAS 편집자 관리 (관리자) */
