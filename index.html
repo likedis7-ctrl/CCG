@@ -1165,6 +1165,11 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
 </div>
 
 <script type="module">
+// super-build는 CKEDITOR.ClassicEditor로 노출 → 전역 ClassicEditor 호환 처리
+if (window.CKEDITOR?.ClassicEditor && !window.ClassicEditor) {
+  window.ClassicEditor = window.CKEDITOR.ClassicEditor;
+}
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
