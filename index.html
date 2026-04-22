@@ -7,7 +7,7 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏫</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@400;600&display=swap" rel="stylesheet" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
+<script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/super-build/ckeditor.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.5/purify.min.js"></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -251,6 +251,9 @@ main { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem 3rem; }
 .blog-post-meta { font-size: 13px; color: var(--text-muted); display: flex; gap: 1.5rem; flex-wrap: wrap; padding-bottom: 1.25rem; border-bottom: 2px solid var(--border); margin-bottom: 1.75rem; }
 .blog-post-body { font-size: 15px; line-height: 1.95; color: var(--text); }
 #column-ck-editor-wrap .ck-editor__editable { min-height: 450px; }
+#column-ck-editor-wrap .ck-toolbar { flex-wrap: wrap !important; }
+.ck-content [style*="font-family"] { font-family: inherit; }
+.blog-post-body [style*="color"] { /* CKEditor inline color 그대로 표시 */ }
 
 /* ── 관리자 ── */
 .admin-warning { background: #FFF8E1; border: 0.5px solid #FFD54F; border-radius: 8px; padding: 0.75rem 1rem; font-size: 12px; color: #E65100; margin-bottom: 1.5rem; }
@@ -2869,8 +2872,67 @@ window.openColumnEditor = async function(postData) {
   document.getElementById('column-ck-editor-wrap').innerHTML = '';
   try {
     _columnEditorInstance = await ClassicEditor.create(document.getElementById('column-ck-editor-wrap'), {
-      toolbar: ['heading','|','bold','italic','underline','|','bulletedList','numberedList',
-                'blockQuote','|','imageUpload','link','|','undo','redo'],
+      toolbar: {
+        items: [
+          'heading', '|',
+          'fontFamily', 'fontSize', '|',
+          'bold', 'italic', 'underline', 'strikethrough', '|',
+          'fontColor', 'fontBackgroundColor', '|',
+          'alignment', '|',
+          'bulletedList', 'numberedList', 'outdent', 'indent', '|',
+          'blockQuote', 'horizontalLine', '|',
+          'imageUpload', 'link', 'insertTable', '|',
+          'removeFormat', 'undo', 'redo',
+        ],
+        shouldNotGroupWhenFull: false,
+      },
+      fontFamily: {
+        options: [
+          'default',
+          'Noto Sans KR, sans-serif',
+          'Noto Serif KR, serif',
+          'Arial, Helvetica, sans-serif',
+          'Georgia, Times New Roman, serif',
+          'Courier New, Courier, monospace',
+        ],
+      },
+      fontSize: {
+        options: [10, 12, 14, 'default', 18, 20, 24, 28, 32, 36],
+      },
+      fontColor: {
+        columns: 6,
+        colors: [
+          { color: '#000000', label: '검정' },
+          { color: '#333333', label: '진회색' },
+          { color: '#666666', label: '회색' },
+          { color: '#ffffff', label: '흰색', hasBorder: true },
+          { color: '#0B2447', label: '네이비' },
+          { color: '#1565C0', label: '블루' },
+          { color: '#C8A951', label: '골드' },
+          { color: '#C62828', label: '빨강' },
+          { color: '#2E7D32', label: '초록' },
+          { color: '#E65100', label: '주황' },
+          { color: '#6A1B9A', label: '보라' },
+          { color: '#00838F', label: '청록' },
+        ],
+      },
+      fontBackgroundColor: {
+        columns: 6,
+        colors: [
+          { color: 'transparent', label: '없음', hasBorder: true },
+          { color: '#FFF176', label: '노랑' },
+          { color: '#A5D6A7', label: '초록' },
+          { color: '#90CAF9', label: '파랑' },
+          { color: '#F48FB1', label: '핑크' },
+          { color: '#FFCC80', label: '주황' },
+          { color: '#CE93D8', label: '보라' },
+          { color: '#B0BEC5', label: '회색' },
+          { color: '#0B2447', label: '네이비' },
+          { color: '#C8A951', label: '골드' },
+          { color: '#C62828', label: '빨강' },
+          { color: '#2E7D32', label: '초록' },
+        ],
+      },
       extraPlugins: [UploadAdapterPlugin],
     });
     if (postData?.content) {
