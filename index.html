@@ -236,6 +236,22 @@ main { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem 3rem; }
 .vtab-yt-wrap { position: relative; width: 100%; padding-bottom: 56.25%; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
 .vtab-yt-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: none; }
 
+/* ── 입시칼럼 블로그 ── */
+.blog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 1.25rem; }
+.blog-card { background: var(--white); border: 0.5px solid var(--border); border-radius: 14px; overflow: hidden; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; }
+.blog-card:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(11,36,71,0.12); border-color: var(--navy-mid); }
+.blog-card-thumb { width: 100%; height: 175px; object-fit: cover; display: block; }
+.blog-card-thumb-placeholder { width: 100%; height: 175px; background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%); display: flex; align-items: center; justify-content: center; font-size: 38px; opacity: 0.7; }
+.blog-card-body { padding: 1.25rem; flex: 1; display: flex; flex-direction: column; }
+.blog-card-title { font-family: var(--font-heading); font-size: 16px; font-weight: 600; color: var(--navy); margin-bottom: 0.5rem; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.blog-card-excerpt { font-size: 13px; color: var(--text-muted); line-height: 1.75; flex: 1; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 0.85rem; }
+.blog-card-meta { font-size: 12px; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center; padding-top: 0.75rem; border-top: 0.5px solid var(--border); flex-wrap: wrap; gap: 4px; }
+.blog-card-author { font-weight: 500; color: var(--navy-mid); }
+.blog-post-title { font-family: var(--font-heading); font-size: 24px; font-weight: 600; color: var(--navy); line-height: 1.4; margin-bottom: 0.75rem; }
+.blog-post-meta { font-size: 13px; color: var(--text-muted); display: flex; gap: 1.5rem; flex-wrap: wrap; padding-bottom: 1.25rem; border-bottom: 2px solid var(--border); margin-bottom: 1.75rem; }
+.blog-post-body { font-size: 15px; line-height: 1.95; color: var(--text); }
+#column-ck-editor-wrap .ck-editor__editable { min-height: 450px; }
+
 /* ── 관리자 ── */
 .admin-warning { background: #FFF8E1; border: 0.5px solid #FFD54F; border-radius: 8px; padding: 0.75rem 1rem; font-size: 12px; color: #E65100; margin-bottom: 1.5rem; }
 .admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
@@ -691,23 +707,12 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
       <button class="vtab"        data-tab="archive"  onclick="showVeritasTab('archive')">과월호</button>
     </div>
 
-    <!-- 입시칼럼 -->
+    <!-- 입시칼럼 (블로그 포스팅) -->
     <div class="vtab-content active" id="vtab-column">
       <div class="vtab-header-actions">
-        <button id="vtab-column-upload-btn" class="btn-upload" style="display:none;" onclick="openArticleUpload('column')">📄 글 업로드</button>
+        <button id="vtab-column-upload-btn" class="btn-upload" style="display:none;" onclick="openColumnEditor(null)">✏️ 글 작성</button>
       </div>
-      <div id="vtab-column-list" class="vtab-article-list"></div>
-      <div id="vtab-column-viewer" style="display:none;">
-        <div class="vtab-viewer-header">
-          <button class="vtab-back-btn" onclick="closeArticleViewer('column')">← 목록으로</button>
-          <div class="vtab-viewer-title" id="vtab-column-viewer-title"></div>
-          <button class="btn-download" style="padding:0.35rem 0.9rem;font-size:12px;" id="vtab-column-dl-btn" onclick="downloadArticle('column')">⬇ 다운로드</button>
-        </div>
-        <div id="vtab-column-iframe-loading" style="width:100%;height:78vh;border-radius:10px;background:#f0f4f8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--text-muted);font-size:14px;">
-          <div style="width:36px;height:36px;border:3px solid var(--accent);border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;"></div>PDF 뷰어 로딩 중...
-        </div>
-        <iframe id="vtab-column-iframe" style="width:100%;height:78vh;border:none;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,0.08);display:none;" src="" onload="onArticleIframeLoad('column')"></iframe>
-      </div>
+      <div id="vtab-column-blog-list" class="blog-grid"></div>
     </div>
 
     <!-- 진로 -->
@@ -988,6 +993,42 @@ footer { background: var(--navy); border-top: 2px solid var(--accent); padding: 
       <button class="btn-upload" style="flex:1.5;padding:0.65rem;" onclick="document.getElementById('veritas-file2-input').click()">예, 두 번째 파일 선택</button>
       <button class="modal-ok" style="flex:1;background:none;border:0.5px solid var(--border);color:var(--text);padding:0.65rem;" onclick="skipVeritasUpload2()">아니오</button>
     </div>
+  </div>
+</div>
+
+<!-- 입시칼럼 에디터 모달 -->
+<div class="full-modal" id="column-editor-modal">
+  <div class="full-modal-header">
+    <span class="full-modal-title" id="column-editor-modal-title">입시칼럼 작성</span>
+    <button class="full-modal-close" onclick="closeColumnEditor()">✕ 닫기</button>
+  </div>
+  <div class="full-modal-body">
+    <input type="text" class="editor-title-input" id="column-post-title-input" placeholder="제목을 입력하세요">
+    <div id="column-ck-editor-wrap"></div>
+  </div>
+  <div class="full-modal-footer">
+    <button class="btn-upload" style="padding:0.6rem 2rem;" onclick="submitColumnPost()">게시하기</button>
+    <button class="modal-ok" style="background:none;border:0.5px solid var(--border);color:var(--text);padding:0.6rem 1.5rem;" onclick="closeColumnEditor()">취소</button>
+  </div>
+</div>
+
+<!-- 입시칼럼 읽기 모달 -->
+<div class="full-modal" id="column-post-view-modal">
+  <div class="full-modal-header">
+    <span class="full-modal-title">입시칼럼</span>
+    <button class="full-modal-close" onclick="closeColumnPostView()">✕ 닫기</button>
+  </div>
+  <div class="full-modal-body" style="max-width:780px;">
+    <div class="blog-post-title" id="column-post-view-title"></div>
+    <div class="blog-post-meta">
+      <span id="column-post-view-author"></span>
+      <span id="column-post-view-date"></span>
+    </div>
+    <div class="blog-post-body ck-content" id="column-post-view-body"></div>
+  </div>
+  <div class="full-modal-footer" id="column-post-view-footer" style="display:none;">
+    <button class="btn-upload" style="padding:0.55rem 1.5rem;" onclick="editColumnPost()">✏️ 수정</button>
+    <button class="btn-slot-del" style="width:auto;padding:0.55rem 1.5rem;" onclick="deleteColumnPost()">🗑 삭제</button>
   </div>
 </div>
 
@@ -2715,7 +2756,7 @@ let _vPendingMonth = null;
 let _vPendingDocId = null;
 let _vPendingUrl1  = null;
 
-const VTAB_PDF_CATS   = ['column','career','univ','special','external'];
+const VTAB_PDF_CATS   = ['career','univ','special','external'];
 const VTAB_VIDEO_CATS = ['grad','current'];
 let _currentVeritasTab = 'column';
 let _vtabLoaded = new Set();
@@ -2757,6 +2798,8 @@ async function loadVeritasPage() {
 async function _loadVeritasTab(tab) {
   if (tab === 'archive') {
     await _loadVeritasArchive();
+  } else if (tab === 'column') {
+    await loadColumnPosts();
   } else if (VTAB_PDF_CATS.includes(tab)) {
     await loadArticles(tab);
   } else if (VTAB_VIDEO_CATS.includes(tab)) {
@@ -2772,6 +2815,148 @@ window.showVeritasTab = function(tab) {
     _vtabLoaded.add(tab);
     _loadVeritasTab(tab);
   }
+};
+
+/* ── 입시칼럼 블로그 ── */
+let _columnEditorInstance = null;
+let _columnEditingId      = null;
+let _columnViewingPost    = null;
+
+async function loadColumnPosts() {
+  const grid = document.getElementById('vtab-column-blog-list');
+  if (!grid) return;
+  grid.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-muted);font-size:13px;">로딩 중...</div>';
+  try {
+    const snap = await getDocs(query(collection(db,'veritasPosts'), orderBy('createdAt','desc')));
+    if (snap.empty) {
+      grid.innerHTML = '<div class="no-data-alert">아직 등록된 칼럼이 없습니다.</div>';
+      return;
+    }
+    grid.innerHTML = '';
+    snap.docs.forEach(d => {
+      const p    = { id: d.id, ...d.data() };
+      const date = p.createdAt?.toDate ? p.createdAt.toDate().toLocaleDateString('ko-KR') : '';
+      const card = document.createElement('div');
+      card.className = 'blog-card';
+      const thumbHtml = p.thumbnailUrl
+        ? `<img class="blog-card-thumb" src="${_escHtml(p.thumbnailUrl)}" alt="${_escHtml(p.title)}">`
+        : `<div class="blog-card-thumb-placeholder">📰</div>`;
+      card.innerHTML = `
+        ${thumbHtml}
+        <div class="blog-card-body">
+          <div class="blog-card-title">${_escHtml(p.title)}</div>
+          <div class="blog-card-excerpt">${_escHtml(p.excerpt || '')}</div>
+          <div class="blog-card-meta">
+            <span class="blog-card-author">${_escHtml(p.authorName || p.authorEmail)}</span>
+            <span>${date}</span>
+          </div>
+        </div>`;
+      card.addEventListener('click', () => openColumnPost(p));
+      grid.appendChild(card);
+    });
+  } catch(e) {
+    grid.innerHTML = `<div class="no-data-alert">로딩 실패: ${e.message}</div>`;
+  }
+}
+
+window.openColumnEditor = async function(postId) {
+  _columnEditingId = postId || null;
+  document.getElementById('column-editor-modal-title').textContent = postId ? '입시칼럼 수정' : '입시칼럼 작성';
+  document.getElementById('column-post-title-input').value = '';
+  document.getElementById('column-editor-modal').classList.add('open');
+
+  if (_columnEditorInstance) {
+    await _columnEditorInstance.destroy();
+    _columnEditorInstance = null;
+  }
+  document.getElementById('column-ck-editor-wrap').innerHTML = '';
+  try {
+    _columnEditorInstance = await ClassicEditor.create(document.getElementById('column-ck-editor-wrap'), {
+      toolbar: ['heading','|','bold','italic','underline','|','bulletedList','numberedList',
+                'blockQuote','|','imageUpload','link','|','undo','redo'],
+      extraPlugins: [UploadAdapterPlugin],
+    });
+    if (postId && _columnViewingPost && _columnViewingPost.id === postId) {
+      document.getElementById('column-post-title-input').value = _columnViewingPost.title;
+      _columnEditorInstance.setData(_columnViewingPost.content || '');
+    }
+  } catch(e) { showToast('에디터 초기화 실패: ' + e.message); }
+};
+
+window.closeColumnEditor = async function() {
+  document.getElementById('column-editor-modal').classList.remove('open');
+  if (_columnEditorInstance) {
+    await _columnEditorInstance.destroy();
+    _columnEditorInstance = null;
+  }
+  _columnEditingId = null;
+};
+
+window.submitColumnPost = async function() {
+  const title   = document.getElementById('column-post-title-input').value.trim();
+  const content = _columnEditorInstance ? _columnEditorInstance.getData() : '';
+  if (!title)   { showToast('제목을 입력해주세요.'); return; }
+  if (!content) { showToast('내용을 입력해주세요.'); return; }
+
+  const imgMatch     = content.match(/<img[^>]+src=["']([^"']+)["']/i);
+  const thumbnailUrl = imgMatch ? imgMatch[1] : null;
+  const excerpt      = stripHtml(content).replace(/\s+/g,' ').trim().slice(0,150);
+
+  try {
+    if (_columnEditingId) {
+      await updateDoc(doc(db,'veritasPosts', _columnEditingId), {
+        title, content, excerpt, thumbnailUrl, updatedAt: Timestamp.now(),
+      });
+      showToast('수정되었습니다!');
+    } else {
+      await addDoc(collection(db,'veritasPosts'), {
+        title, content, excerpt, thumbnailUrl,
+        authorEmail: currentUser.email,
+        authorName:  currentUser.displayName || currentUser.email,
+        createdAt:   Timestamp.now(),
+      });
+      showToast('게시글이 등록되었습니다!');
+    }
+    await closeColumnEditor();
+    closeColumnPostView();
+    _vtabLoaded.delete('column');
+    await loadColumnPosts();
+    _vtabLoaded.add('column');
+  } catch(e) { showToast('저장 실패: ' + e.message); }
+};
+
+function openColumnPost(post) {
+  _columnViewingPost = post;
+  const date = post.createdAt?.toDate ? post.createdAt.toDate().toLocaleDateString('ko-KR') : '';
+  document.getElementById('column-post-view-title').textContent  = post.title;
+  document.getElementById('column-post-view-author').textContent = post.authorName || post.authorEmail;
+  document.getElementById('column-post-view-date').textContent   = date;
+  document.getElementById('column-post-view-body').innerHTML     = DOMPurify.sanitize(post.content || '');
+  const footer = document.getElementById('column-post-view-footer');
+  footer.style.display = isVeritasEditor ? '' : 'none';
+  document.getElementById('column-post-view-modal').classList.add('open');
+}
+
+window.closeColumnPostView = function() {
+  document.getElementById('column-post-view-modal').classList.remove('open');
+  _columnViewingPost = null;
+};
+
+window.editColumnPost = function() {
+  if (!_columnViewingPost) return;
+  closeColumnPostView();
+  openColumnEditor(_columnViewingPost.id);
+};
+
+window.deleteColumnPost = async function() {
+  if (!_columnViewingPost) return;
+  if (!confirm('이 칼럼을 삭제하시겠습니까?')) return;
+  await deleteDoc(doc(db,'veritasPosts', _columnViewingPost.id));
+  showToast('삭제되었습니다.');
+  closeColumnPostView();
+  _vtabLoaded.delete('column');
+  await loadColumnPosts();
+  _vtabLoaded.add('column');
 };
 
 /* ── 과월호 (기존 기능) ── */

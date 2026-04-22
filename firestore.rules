@@ -115,6 +115,14 @@ service cloud.firestore {
       allow write: if isVeritasEditor();
     }
 
+    // 입시칼럼 블로그 포스트
+    match /veritasPosts/{postId} {
+      allow read: if isCNSA();
+      allow create: if isVeritasEditor();
+      allow update: if isVeritasEditor();
+      allow delete: if isVeritasEditor();
+    }
+
     // VERITAS CNSA PDF 아티클
     match /veritasArticles/{articleId} {
       allow read: if isCNSA();
