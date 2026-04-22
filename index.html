@@ -2855,10 +2855,11 @@ async function loadColumnPosts() {
   }
 }
 
-window.openColumnEditor = async function(postId) {
-  _columnEditingId = postId || null;
-  document.getElementById('column-editor-modal-title').textContent = postId ? '입시칼럼 수정' : '입시칼럼 작성';
-  document.getElementById('column-post-title-input').value = '';
+window.openColumnEditor = async function(postData) {
+  // postData: null(신규) 또는 포스트 객체(수정)
+  _columnEditingId = postData?.id || null;
+  document.getElementById('column-editor-modal-title').textContent = postData ? '입시칼럼 수정' : '입시칼럼 작성';
+  document.getElementById('column-post-title-input').value = postData?.title || '';
   document.getElementById('column-editor-modal').classList.add('open');
 
   if (_columnEditorInstance) {
@@ -2872,9 +2873,8 @@ window.openColumnEditor = async function(postId) {
                 'blockQuote','|','imageUpload','link','|','undo','redo'],
       extraPlugins: [UploadAdapterPlugin],
     });
-    if (postId && _columnViewingPost && _columnViewingPost.id === postId) {
-      document.getElementById('column-post-title-input').value = _columnViewingPost.title;
-      _columnEditorInstance.setData(_columnViewingPost.content || '');
+    if (postData?.content) {
+      _columnEditorInstance.setData(postData.content);
     }
   } catch(e) { showToast('에디터 초기화 실패: ' + e.message); }
 };
@@ -2940,8 +2940,9 @@ window.closeColumnPostView = function() {
 
 window.editColumnPost = function() {
   if (!_columnViewingPost) return;
+  const post = _columnViewingPost;  // closeColumnPostView()가 null로 만들기 전에 저장
   closeColumnPostView();
-  openColumnEditor(_columnViewingPost.id);
+  openColumnEditor(post);
 };
 
 window.deleteColumnPost = async function() {
