@@ -119,8 +119,8 @@ service cloud.firestore {
     match /veritasPosts/{postId} {
       allow read: if isCNSA();
       allow create: if isVeritasEditor();
-      allow update: if isVeritasEditor();
-      allow delete: if isVeritasEditor();
+      allow update: if isAdmin() || (isVeritasEditor() && resource.data.authorEmail == request.auth.token.email);
+      allow delete: if isAdmin() || (isVeritasEditor() && resource.data.authorEmail == request.auth.token.email);
     }
 
     // VERITAS CNSA PDF 아티클
