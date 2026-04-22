@@ -2776,11 +2776,7 @@ async function initVeritasEditor() {
 }
 
 function _updateVtabEditorBtns() {
-  VTAB_PDF_CATS.forEach(cat => {
-    const btn = document.getElementById(`vtab-${cat}-upload-btn`);
-    if (btn) btn.style.display = isVeritasEditor ? 'inline-block' : 'none';
-  });
-  VTAB_VIDEO_CATS.forEach(cat => {
+  ['column', ...VTAB_PDF_CATS, ...VTAB_VIDEO_CATS].forEach(cat => {
     const btn = document.getElementById(`vtab-${cat}-upload-btn`);
     if (btn) btn.style.display = isVeritasEditor ? 'inline-block' : 'none';
   });
